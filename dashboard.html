@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Soccer, by the event | Dashboard</title>
+  <link rel="stylesheet" href="assets/styles.css">
+  <script defer src="assets/site.js"></script>
+</head>
+<body data-page="dashboard">
+  <nav class="site-nav">
+    <a class="brand" href="index.html">SOCCER / BY THE EVENT</a>
+    <div class="nav-links"><a href="index.html">← Report</a><a class="active" href="dashboard.html">Dashboard</a></div>
+  </nav>
+
+  <main class="content-shell">
+    <header class="dashboard-header">
+      <div class="eyebrow">Interactive browser view</div>
+      <h1>Ask a different question.</h1>
+      <p class="lede">Filter the player-season records, switch the measure, and see the leaderboard recalculate in your browser.</p>
+    </header>
+
+    <p id="dashboard-loading" class="loading">Loading the derived soccer data…</p>
+    <p id="load-error" class="finding"></p>
+
+    <section class="controls" aria-label="Dashboard filters">
+      <div class="control"><label for="filter-season">Time / season</label><select id="filter-season"></select></div>
+      <div class="control"><label for="filter-player">Group / player</label><select id="filter-player"></select></div>
+      <div class="control"><label for="filter-league">League</label><select id="filter-league"></select></div>
+      <div class="control"><label for="filter-country">Country</label><select id="filter-country"></select></div>
+      <div class="control"><label for="filter-team">Team</label><select id="filter-team"></select></div>
+    </section>
+
+    <section class="toolbar" aria-label="Chart switches">
+      <div class="control"><label for="measure">Measure shown</label><select id="measure"><option value="goals">Goals</option><option value="assists">Assists</option><option value="goal_contributions">Goal contributions</option><option value="attempts">Shot attempts</option><option value="shots_on_target">Shots on target</option><option value="key_passes">Key passes</option><option value="yellow_cards">Yellow cards</option><option value="event_count">Recorded events</option></select></div>
+      <div class="control"><label for="breakdown">Break chart down by</label><select id="breakdown"><option value="player">Player</option><option value="team">Team</option><option value="league">League</option><option value="country">Country</option><option value="season">Season</option></select></div>
+      <div class="control"><label for="method-group">Goal method view</label><select id="method-group"><option value="bodypart">Body part</option><option value="situation">Scoring situation</option><option value="assist_method">Assist method</option></select></div>
+      <button id="reset-filters" type="button">Reset all filters</button>
+    </section>
+
+    <section class="stat-grid dashboard-stats">
+      <div class="stat-card"><span class="stat-value" id="dash-records">—</span><span class="stat-label">records in current view</span></div>
+      <div class="stat-card"><span class="stat-value" id="dash-players">—</span><span class="stat-label">players in current view</span></div>
+      <div class="stat-card"><span class="stat-value" id="dash-metric-total">—</span><span class="stat-label" id="dash-metric-label">selected measure total</span></div>
+      <div class="stat-card"><span class="stat-value" id="dash-avg-goals">—</span><span class="stat-label">average goals per row</span></div>
+    </section>
+
+    <section class="dashboard-grid">
+      <article class="dashboard-card"><h3 id="dash-current-label">Selected measure by player</h3><canvas id="dash-breakdown-chart"></canvas></article>
+      <article class="dashboard-card"><h3>Measure across seasons</h3><canvas id="dash-season-chart"></canvas></article>
+      <article class="dashboard-card"><h3>Goals by league</h3><canvas id="dash-goals-chart"></canvas></article>
+      <article class="dashboard-card"><h3>Yellow cards by league</h3><canvas id="dash-discipline-chart"></canvas></article>
+      <article class="dashboard-card"><h3>Goals by selected method</h3><canvas id="dash-method-chart"></canvas></article>
+    </section>
+
+    <section>
+      <div class="eyebrow" style="margin-bottom: 10px;">Current view / top 40 records</div>
+      <div class="table-wrap">
+        <table id="dashboard-table">
+          <thead><tr><th>Player</th><th>Team</th><th>League</th><th>Season</th><th>Selected measure</th><th>Goals</th><th>Assists</th><th>Event matches</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+  <footer class="content-shell footer">All values are calculated from the browser-ready CSV. See the report for definitions and limitations.</footer>
+</body>
+</html>

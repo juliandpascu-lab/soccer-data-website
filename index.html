@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Soccer, by the event | Report</title>
+  <link rel="stylesheet" href="assets/styles.css">
+  <script defer src="assets/site.js"></script>
+</head>
+<body data-page="report">
+  <nav class="site-nav">
+    <a class="brand" href="index.html">SOCCER / BY THE EVENT</a>
+    <div class="nav-links"><a class="active" href="index.html">Report</a><a href="dashboard.html">Dashboard →</a></div>
+  </nav>
+
+  <main>
+    <header class="hero">
+      <div class="eyebrow">Financial Data Analytics · Soccer event study</div>
+      <h1>Every match has a story. The event log tells it.</h1>
+      <p class="lede">This report turns 941,000 recorded match events into a player-season view of goals, attempts, chance creation, and discipline across five European domestic leagues.</p>
+      <p class="byline">Prepared by Julian Pascu · source window: 2011–2017</p>
+    </header>
+
+    <section class="content-shell">
+      <div class="stat-grid">
+        <div class="stat-card"><span class="stat-value" id="report-rows">—</span><span class="stat-label">player-season-team records</span></div>
+        <div class="stat-card"><span class="stat-value" id="report-goals">—</span><span class="stat-label">recorded goals</span></div>
+        <div class="stat-card"><span class="stat-value" id="report-players">—</span><span class="stat-label">players represented</span></div>
+        <div class="stat-card"><span class="stat-value" id="report-seasons">—</span><span class="stat-label">season coverage</span></div>
+      </div>
+
+      <p id="load-error" class="finding"></p>
+
+      <section class="report-section">
+        <div><div class="section-number">01 / THE LEADERBOARD</div><h2>One scorer sits clearly above the rest.</h2><p class="finding"><strong id="top-scorer">Loading…</strong> leads the player-season records with <strong id="top-scorer-goals">—</strong> goals. The chart ranks the ten strongest scorers after the event log is grouped by player.</p><p class="finding">This is a count of recorded goal events, not a claim about official league-wide appearances. A player can appear more than once in a season if the source records separate club rows.</p></div>
+        <div class="chart-card"><canvas id="chart-top-scorers"></canvas><p class="chart-note">Total recorded goals by player across the full source window.</p></div>
+      </section>
+
+      <section class="report-section">
+        <div><div class="section-number">02 / TIME</div><h2>Scoring volume moves from season to season.</h2><p class="finding">The highest-scoring season is <strong id="top-season">—</strong>, with <strong id="top-season-goals">—</strong> recorded goals in the derived player-season file.</p><p class="finding">A season total reflects both the number of matches in the source and the amount of event coverage available. The line is useful for comparison within this database, not as a complete historical league census.</p></div>
+        <div class="chart-card"><canvas id="chart-season-goals"></canvas><p class="chart-note">Recorded goals summed by season code.</p></div>
+      </section>
+
+      <section class="report-section">
+        <div><div class="section-number">03 / LEAGUES</div><h2>The leagues do not contribute equally to the goal total.</h2><p class="finding"><strong id="top-league">—</strong> contributes the largest league total at <strong id="top-league-goals">—</strong> goals. This difference is shaped by league size, season coverage, and the number of recorded events.</p><p class="finding">The codebook uses compact league labels. In the source, they correspond to the five domestic competitions in Germany, England, France, Italy, and Spain.</p></div>
+        <div class="chart-card"><canvas id="chart-league-goals"></canvas><p class="chart-note">Recorded goals by league code.</p></div>
+      </section>
+
+      <section class="report-section">
+        <div><div class="section-number">04 / CONTRIBUTION</div><h2>Creating a goal is broader than scoring one.</h2><p class="finding"><strong id="top-contributor">—</strong> leads on the combined contribution measure with <strong id="top-contributor-value">—</strong> goals plus recorded assists.</p><p class="finding">Assists are conservatively counted when a goal attempt has a nonmissing assisting player in the event record. That definition is reproducible, but it may differ from an official provider’s assist rules.</p></div>
+        <div class="chart-card"><canvas id="chart-contributions"></canvas><p class="chart-note">Goals plus recorded goal assists, ranked by player.</p></div>
+      </section>
+
+      <section class="report-section">
+        <div><div class="section-number">05 / SCORING METHOD</div><h2>The right foot is the most common recorded scoring method.</h2><p class="finding"><strong id="top-method">—</strong> accounts for <strong id="top-method-goals">—</strong> recorded goals in the default method view. The codebook records body part, scoring situation, shot placement, and assist method for shot events.</p><p class="finding">The dashboard makes this comparison interactive: choose body part, scoring situation, or assist method, then filter by season, league, team, or player.</p></div>
+        <div class="chart-card"><canvas id="chart-methods"></canvas><p class="chart-note">Recorded goals by body part. “Method” is based on the event codebook.</p></div>
+      </section>
+
+      <section class="report-section">
+        <div><div class="section-number">06 / DISCIPLINE</div><h2>Discipline is visible in the same event stream.</h2><p class="finding">Yellow cards are event type 4 in the dictionary. Counting them beside goals makes it possible to compare attacking production with disciplinary activity without adding another source.</p><p class="finding">Second yellows and red cards remain separate fields in the dashboard table, so a reader can inspect the difference between ordinary cautions and sendings-off.</p></div>
+        <div class="chart-card"><canvas id="chart-cards"></canvas><p class="chart-note">Recorded yellow cards by league code.</p></div>
+      </section>
+
+      <section class="report-section">
+        <div><div class="section-number">07 / TEAMS</div><h2>Team identity changes the shape of the leaderboard.</h2><p class="finding"><strong id="top-team">—</strong> is the top team in the derived goal total with <strong id="top-team-goals">—</strong> goals. Team totals sum events attributed to that team in the source event file.</p><p class="finding">Because the data is domestic and team-based, this view is especially useful for comparing attacking environments rather than declaring that one player or team is universally best.</p></div>
+        <div class="chart-card"><canvas id="chart-teams"></canvas><p class="chart-note">Top ten teams by recorded goals.</p></div>
+      </section>
+
+      <section class="report-section">
+        <div><div class="section-number">08 / RATE</div><h2>Rates add context to raw totals.</h2><p class="finding">The final chart averages each player-season record’s goals per match with a recorded event for the league. This is a lightweight rate, designed to make unequal row counts easier to compare.</p><p class="finding">Use rates carefully: the event data does not include a complete official minutes-played or appearance field. The dashboard exposes totals alongside the rate so the denominator stays visible.</p></div>
+        <div class="chart-card"><canvas id="chart-efficiency"></canvas><p class="chart-note">Average recorded goals per event-bearing match by league.</p></div>
+      </section>
+
+      <section class="method-card">
+        <div class="eyebrow">Methods / data notes</div>
+        <h2>What exactly is one row?</h2>
+        <p id="rows-note">Loading the derived row count…</p>
+        <p>The source match file contributes date, season, league, country, teams, and score. The source event file contributes the player and event measures. We join on <code>id_odsp</code>, remove events with a missing player or missing match join, then group by season, league, country, player, and event team.</p>
+        <p>Goals, attempts, shots on target, key passes, corners, fouls, cards, substitutions, offsides, handballs, penalties conceded, and recorded assists are all sums of coded events. Goals per event-bearing match is goals divided by distinct joined match IDs. The source contains domestic leagues only; it does not contain national-team international matches.</p>
+        <p><a href="dashboard.html">Explore the same calculations in the interactive dashboard →</a></p>
+      </section>
+    </section>
+  </main>
+  <footer class="content-shell footer">Built for Financial Data Analytics · data and calculations are documented in the project README.</footer>
+</body>
+</html>
