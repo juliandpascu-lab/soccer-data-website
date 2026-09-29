@@ -83,6 +83,7 @@ h3 { margin: 0; font-size: 1rem; }
 .svg-value { fill: #10221d; font: 700 12px Inter, ui-sans-serif, system-ui, sans-serif; }
 .svg-value-inside { fill: #fff; }
 .svg-axis { fill: #7a8982; font: 11px Inter, ui-sans-serif, system-ui, sans-serif; }
+.svg-label-icon { pointer-events: none; }
 .svg-line { stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
 .svg-point { transition: stroke-width .16s ease; }
 .svg-empty { fill: #64736d; font: 13px Inter, ui-sans-serif, system-ui, sans-serif; }
@@ -95,16 +96,49 @@ h3 { margin: 0; font-size: 1rem; }
 .identity-badge img { position: absolute; inset: 5px; z-index: 1; width: calc(100% - 10px); height: calc(100% - 10px); object-fit: contain; }
 .identity-fallback { color: var(--green-dark); font-size: .62rem; font-weight: 850; letter-spacing: -.02em; }
 .league-badge { border-radius: 50%; background: white; }
+.inline-identity { display: inline-flex; vertical-align: middle; }
+.inline-identity .identity-badge { width: 26px; height: 26px; border-radius: 50%; box-shadow: none; }
+.inline-identity .identity-badge img { inset: 3px; width: calc(100% - 6px); height: calc(100% - 6px); }
 .scorer-shirts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 15px; padding-top: 13px; border-top: 1px solid var(--line); }
 .scorer-shirt-card { display: grid; justify-items: center; gap: 3px; min-width: 0; text-align: center; }
 .goal-shirt { width: 67px; height: 75px; filter: drop-shadow(0 6px 7px rgba(16, 34, 29, .13)); transition: transform .18s ease, filter .18s ease; }
 .scorer-shirt-card:hover .goal-shirt { transform: translateY(-4px) rotate(-2deg); filter: drop-shadow(0 10px 10px rgba(16, 34, 29, .2)); }
-.shirt-body { fill: var(--shirt-color); stroke: rgba(8, 47, 38, .4); stroke-width: 1.5; }
-.shirt-collar { fill: rgba(255, 255, 255, .22); stroke: rgba(255, 255, 255, .5); stroke-width: 1; }
-.shirt-rank { fill: rgba(255, 255, 255, .76); font: 750 9px Inter, ui-sans-serif, system-ui, sans-serif; }
-.shirt-number { fill: white; font: 850 16px Inter, ui-sans-serif, system-ui, sans-serif; }
+.shirt-body { fill: var(--shirt-primary); stroke: rgba(8, 47, 38, .4); stroke-width: 1.5; }
+.shirt-stripe, .shirt-band { fill: var(--shirt-secondary); opacity: .92; }
+.shirt-sleeve { fill: var(--shirt-accent); opacity: .96; }
+.shirt-collar { fill: var(--shirt-accent); stroke: rgba(255, 255, 255, .5); stroke-width: 1; }
+.shirt-rank { fill: var(--shirt-text); font: 750 9px Inter, ui-sans-serif, system-ui, sans-serif; }
+.shirt-number { fill: var(--shirt-text); font: 850 16px Inter, ui-sans-serif, system-ui, sans-serif; }
 .scorer-shirt-card strong { max-width: 100%; overflow: hidden; font-size: .69rem; text-overflow: ellipsis; white-space: nowrap; }
 .scorer-shirt-card span { color: var(--muted); font-size: .65rem; }
+.scorer-shirt-card small { max-width: 100%; overflow: hidden; color: var(--green); font-size: .59rem; font-weight: 750; text-overflow: ellipsis; white-space: nowrap; }
+
+.scope-grid { display: grid; gap: 7px; margin-top: 18px; }
+.scope-item { display: grid; grid-template-columns: 104px 1fr; gap: 8px; align-items: center; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: rgba(255,255,255,.54); }
+.scope-item strong { color: var(--green); font-size: .62rem; letter-spacing: .08em; }
+.scope-item span { color: var(--muted); font-size: .72rem; }
+.scope-missing strong { color: var(--coral); }
+.timeline-card { min-width: 0; }
+.timeline-wrap { overflow-x: auto; padding-bottom: 4px; }
+.timeline-grid { min-width: 730px; color: var(--ink); }
+.timeline-row { display: grid; grid-template-columns: minmax(145px, 1.45fr) minmax(112px, 1fr) repeat(6, minmax(70px, .75fr)); align-items: stretch; }
+.timeline-row > div { min-width: 0; padding: 9px 6px; border-bottom: 1px solid var(--line); border-right: 1px solid var(--line); }
+.timeline-row > div:last-child { border-right: 0; }
+.timeline-header > div { padding-top: 0; padding-bottom: 8px; border-bottom: 2px solid var(--green); color: var(--muted); font-size: .62rem; font-weight: 850; letter-spacing: .08em; text-align: center; }
+.timeline-header > div:first-child, .timeline-header > div:nth-child(2) { text-align: left; }
+.timeline-player, .timeline-club { display: flex; align-items: center; gap: 7px; }
+.timeline-player { flex-direction: column; align-items: flex-start; justify-content: center; }
+.timeline-player strong { font-size: .73rem; }
+.timeline-player span, .timeline-club span { color: var(--muted); font-size: .62rem; }
+.timeline-club { gap: 5px; }
+.timeline-club .identity-badge, .timeline-cell .identity-badge { width: 23px; height: 23px; border-radius: 7px; box-shadow: none; flex: 0 0 auto; }
+.timeline-club .identity-badge img, .timeline-cell .identity-badge img { inset: 2px; width: calc(100% - 4px); height: calc(100% - 4px); }
+.timeline-club .identity-fallback, .timeline-cell .identity-fallback { font-size: .42rem; }
+.timeline-cell { display: grid; justify-items: center; align-content: center; gap: 3px; background: rgba(17, 97, 73, var(--cell-alpha, .04)); text-align: center; }
+.timeline-cell > strong { font-size: .76rem; }
+.timeline-cell > span { display: flex; align-items: center; gap: 3px; min-width: 0; }
+.timeline-cell em { max-width: 41px; overflow: hidden; color: var(--muted); font-size: .53rem; font-style: normal; text-overflow: ellipsis; white-space: nowrap; }
+.timeline-empty { background: transparent; color: #a5b2ac; font-size: .82rem; }
 
 .method-card { margin: 28px 0 66px; padding: 25px; background: #e7f1e8; border-radius: 22px; }
 .method-card p { max-width: 830px; color: #426057; line-height: 1.65; }

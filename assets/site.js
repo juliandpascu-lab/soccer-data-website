@@ -81,6 +81,7 @@ const CLUB_BADGES = {
   'Real Madrid': ['assets/badges/club-real-madrid.png', 'RMA'],
   'Bayern Munich': ['assets/badges/club-bayern-munich.png', 'BAY'],
   'Paris Saint-Germain': ['assets/badges/club-psg.png', 'PSG'],
+  Chelsea: ['assets/badges/club-chelsea.png', 'CFC'],
   Napoli: ['assets/badges/club-napoli.png', 'NAP'],
   Juventus: ['assets/badges/club-juventus.png', 'JUV'],
   'Borussia Dortmund': ['assets/badges/club-borussia-dortmund.png', 'BVB'],
@@ -102,6 +103,17 @@ const CLUB_BADGES = {
   'VfL Wolfsburg': ['assets/badges/club-wolfsburg.png', 'WOB'],
   'Borussia Monchengladbach': ['assets/badges/club-borussia-monchengladbach.png', 'BMG'],
   Lille: ['assets/badges/club-lille.png', 'LOSC'],
+};
+
+const JERSEY_THEMES = {
+  Barcelona: { primary: '#a50044', secondary: '#004d98', accent: '#edbb00', text: '#fff', pattern: 'stripes' },
+  'Real Madrid': { primary: '#f8f8f8', secondary: '#2f65a8', accent: '#d7a93b', text: '#183c70', pattern: 'solid' },
+  'Paris Saint-Germain': { primary: '#071b49', secondary: '#e30613', accent: '#fff', text: '#fff', pattern: 'band' },
+  'Borussia Dortmund': { primary: '#f6d500', secondary: '#111', accent: '#111', text: '#111', pattern: 'solid' },
+  Napoli: { primary: '#12a4dc', secondary: '#fff', accent: '#fff', text: '#fff', pattern: 'solid' },
+  Lyon: { primary: '#1b3d7a', secondary: '#e30613', accent: '#fff', text: '#fff', pattern: 'band' },
+  Chelsea: { primary: '#034694', secondary: '#fff', accent: '#dba111', text: '#fff', pattern: 'solid' },
+  'Atletico Madrid': { primary: '#cb3524', secondary: '#fff', accent: '#1d428a', text: '#fff', pattern: 'stripes' },
 };
 
 const METHOD_GROUPS = {
@@ -200,7 +212,7 @@ function groupSum(rows, key, metric) {
     const name = row[key] || 'Unknown';
     grouped.set(name, (grouped.get(name) || 0) + Number(row[metric] || 0));
   });
-  return [...grouped.entries()].map(([label, value]) => ({ label: displayCategory(key, label), value })).sort((a, b) => b.value - a.value);
+  return [...grouped.entries()].map(([keyValue, value]) => ({ key: keyValue, label: displayCategory(key, keyValue), value })).sort((a, b) => b.value - a.value);
 }
 
 function rawGroupSum(rows, key, metric) {
@@ -245,23 +257,78 @@ function renderClubBadges(rows) {
   container.innerHTML = entries.map((entry) => `<article class="identity-tile"><div>${teamBadgeMarkup(entry.key)}</div><strong>${escapeHtml(entry.label)}</strong><span>${formatNumber(entry.value)} goals</span></article>`).join('');
 }
 
-function shirtSvg(number, color, rank) {
-  return `<svg class="goal-shirt" viewBox="0 0 100 112" role="img" aria-label="${escapeHtml(formatNumber(number))} goals" style="--shirt-color:${color}">
+function jerseyTheme(team) {
+  return JERSEY_THEMES[team] || { primary: '#116149', secondary: '#cfe8d8', accent: '#ffd36b', text: '#fff', pattern: 'solid' };
+}
+
+function shirtSvg(number, rank, team) {
+  const theme = jerseyTheme(team);
+  const badge = CLUB_BADGES[team]?.[0] || '';
+  const pattern = theme.pattern === 'stripes'
+    ? '<path class="shirt-stripe" d="M29 12 39 99h9L38 12zm19 0 11 87h9L57 12z"></path>'
+    : theme.pattern === 'band'
+      ? '<path class="shirt-band" d="M14 30h72v17H14z"></path>'
+      : '';
+  return `<svg class="goal-shirt" viewBox="0 0 100 112" role="img" aria-label="${escapeHtml(formatNumber(number))} goals for ${escapeHtml(team)}" style="--shirt-primary:${theme.primary};--shirt-secondary:${theme.secondary};--shirt-accent:${theme.accent};--shirt-text:${theme.text}">
     <path class="shirt-body" d="M29 12 8 24l12 18 10-6v59h40V36l10 6 12-18-21-12-9 12H38z"></path>
+    ${pattern}
+    <path class="shirt-sleeve" d="M8 24 29 12l4 9-13 15zM92 24 71 12l-4 9 13 15z"></path>
     <path class="shirt-collar" d="M38 12c1 8 5 12 12 12s11-4 12-12l-6-4H44z"></path>
-    <text class="shirt-rank" x="50" y="42" text-anchor="middle">#${rank}</text>
-    <text class="shirt-number" x="50" y="77" text-anchor="middle">${escapeHtml(formatNumber(number))}</text>
+    ${badge ? `<image href="${escapeHtml(badge)}" x="42" y="27" width="16" height="16" preserveAspectRatio="xMidYMid meet"></image>` : ''}
+    <text class="shirt-rank" x="50" y="57" text-anchor="middle">#${rank}</text>
+    <text class="shirt-number" x="50" y="80" text-anchor="middle">${escapeHtml(formatNumber(number))}</text>
   </svg>`;
 }
 
-function renderScorerShirts(top) {
+function topTeamForPlayer(rows, player, season = null) {
+  const filtered = rows.filter((row) => row.player === player && (season === null || String(row.season) === String(season)));
+  return rawGroupSum(filtered, 'team', 'goals')[0]?.key || 'Unknown club';
+}
+
+function renderScorerShirts(top, rows) {
   const container = document.getElementById('scorer-shirts');
   if (!container) return;
-  const shirtColors = ['#116149', '#bd6b36', '#b34e48', '#4a7890', '#6d5c9a', '#7a8d53', '#a76446', '#26735d'];
   container.innerHTML = top.slice(0, 8).map((entry, index) => `<article class="scorer-shirt-card">
-    ${shirtSvg(entry.value, shirtColors[index % shirtColors.length], index + 1)}
-    <strong>${escapeHtml(entry.label)}</strong><span>${formatNumber(entry.value)} goals</span>
+    ${shirtSvg(entry.value, index + 1, topTeamForPlayer(rows, entry.key))}
+    <strong>${escapeHtml(entry.label)}</strong><span>${formatNumber(entry.value)} goals</span><small>${escapeHtml(topTeamForPlayer(rows, entry.key))}</small>
   </article>`).join('');
+}
+
+function seasonDisplay(value) {
+  const season = Number(value);
+  return Number.isFinite(season) ? `${season - 1}/${String(season).slice(-2)}` : String(value);
+}
+
+function renderTopScorerTimeline(rows) {
+  const container = document.getElementById('top-scorer-timeline');
+  if (!container) return;
+  const seasons = [...new Set(rows.map((row) => row.season))].sort((a, b) => Number(a) - Number(b));
+  const top = rawGroupSum(rows, 'player', 'goals').slice(0, 10);
+  const details = new Map();
+  rows.forEach((row) => {
+    if (!details.has(row.player)) details.set(row.player, new Map());
+    const seasonMap = details.get(row.player);
+    if (!seasonMap.has(row.season)) seasonMap.set(row.season, { goals: 0, teams: new Map() });
+    const entry = seasonMap.get(row.season);
+    const goals = Number(row.goals || 0);
+    entry.goals += goals;
+    entry.teams.set(row.team, (entry.teams.get(row.team) || 0) + goals);
+  });
+  const maxGoals = Math.max(...top.map((entry) => entry.value), 1);
+  const header = `<div class="timeline-row timeline-header"><div>PLAYER</div><div>PRIMARY CLUB</div>${seasons.map((season) => `<div>${seasonDisplay(season)}</div>`).join('')}</div>`;
+  const body = top.map((player) => {
+    const primaryTeam = topTeamForPlayer(rows, player.key);
+    const seasonMap = details.get(player.key) || new Map();
+    const cells = seasons.map((season) => {
+      const entry = seasonMap.get(season);
+      if (!entry || entry.goals === 0) return '<div class="timeline-cell timeline-empty">—</div>';
+      const team = [...entry.teams.entries()].sort((a, b) => b[1] - a[1])[0][0];
+      const intensity = Math.max(.12, Math.min(.85, entry.goals / maxGoals));
+      return `<div class="timeline-cell" style="--cell-alpha:${intensity.toFixed(2)}"><strong>${formatNumber(entry.goals)}</strong><span>${teamBadgeMarkup(team)}<em>${escapeHtml(shortLabel(team, 13))}</em></span></div>`;
+    }).join('');
+    return `<div class="timeline-row"><div class="timeline-player"><strong>${escapeHtml(player.label)}</strong><span>${formatNumber(player.value)} total</span></div><div class="timeline-club">${teamBadgeMarkup(primaryTeam)}<span>${escapeHtml(shortLabel(primaryTeam, 18))}</span></div>${cells}</div>`;
+  }).join('');
+  container.innerHTML = `<div class="timeline-grid">${header}${body}</div>`;
 }
 
 function groupAverage(rows, key, metric) {
@@ -272,8 +339,9 @@ function groupAverage(rows, key, metric) {
     if (!grouped.has(name)) grouped.set(name, []);
     grouped.get(name).push(Number(row[metric] || 0));
   });
-  return [...grouped.entries()].map(([label, values]) => ({
-    label: displayCategory(key, label), value: values.reduce((a, b) => a + b, 0) / values.length,
+  return [...grouped.entries()].map(([keyValue, values]) => ({
+    key: keyValue,
+    label: displayCategory(key, keyValue), value: values.reduce((a, b) => a + b, 0) / values.length,
   })).sort((a, b) => b.value - a.value);
 }
 
@@ -366,7 +434,7 @@ function renderSvg(element, content, viewBox = '0 0 820 300') {
   element.classList.add('interactive-chart');
 }
 
-function drawSvgBars(element, items, { horizontal = true, color = COLORS[0], maxItems = 10, decimals = false, formatValue = null } = {}) {
+function drawSvgBars(element, items, { horizontal = true, color = COLORS[0], maxItems = 10, decimals = false, formatValue = null, iconFor = null } = {}) {
   const data = items.slice(0, maxItems);
   if (!data.length) {
     renderSvg(element, '<text class="svg-empty" x="410" y="155" text-anchor="middle">No data for this view</text>');
@@ -421,10 +489,13 @@ function drawSvgBars(element, items, { horizontal = true, color = COLORS[0], max
       const y = top + plotHeight - barHeight;
       const value = valueText(item);
       const label = shortLabel(item.label, 14);
+      const icon = iconFor ? iconFor(item) : '';
+      const labelY = icon ? height - bottom + 36 : height - bottom + 20;
       content += `<g class="svg-mark" tabindex="0"><title>${svgEscape(item.label)}: ${svgEscape(value)}</title>`;
       content += `<rect class="svg-bar" x="${x.toFixed(2)}" y="${y.toFixed(2)}" width="${barWidth.toFixed(2)}" height="${barHeight.toFixed(2)}" rx="6" fill="${colors[index % colors.length]}"/>`;
       content += `<text class="svg-value" x="${(x + barWidth / 2).toFixed(2)}" y="${Math.max(16, y - 8).toFixed(2)}" text-anchor="middle">${svgEscape(value)}</text>`;
-      content += `<text class="svg-label svg-x-label" x="${(x + barWidth / 2).toFixed(2)}" y="${height - bottom + 20}" text-anchor="middle">${svgEscape(label)}</text></g>`;
+      if (icon) content += `<image class="svg-label-icon" href="${svgEscape(icon)}" x="${(x + barWidth / 2 - 12).toFixed(2)}" y="${height - bottom - 2}" width="24" height="24" preserveAspectRatio="xMidYMid meet"/>`;
+      content += `<text class="svg-label svg-x-label" x="${(x + barWidth / 2).toFixed(2)}" y="${labelY}" text-anchor="middle">${svgEscape(label)}</text></g>`;
     });
   }
   content += '</g>';
@@ -470,9 +541,9 @@ function drawSvgLine(element, items, { color = COLORS[0], decimals = false, form
   renderSvg(element, content);
 }
 
-function drawBars(canvas, items, { horizontal = true, color = COLORS[0], maxItems = 10, decimals = false, formatValue = null } = {}) {
+function drawBars(canvas, items, { horizontal = true, color = COLORS[0], maxItems = 10, decimals = false, formatValue = null, iconFor = null } = {}) {
   if (canvas && canvas.tagName && canvas.tagName.toLowerCase() !== 'canvas') {
-    drawSvgBars(canvas, items, { horizontal, color, maxItems, decimals, formatValue });
+    drawSvgBars(canvas, items, { horizontal, color, maxItems, decimals, formatValue, iconFor });
     return;
   }
   const { ctx, width, height } = setupCanvas(canvas);
@@ -556,25 +627,64 @@ function drawLine(canvas, items, { color = COLORS[0], decimals = false, formatVa
   attachTooltip(canvas, regions);
 }
 
+function roundedRect(ctx, x, y, width, height, radius) {
+  const r = Math.min(radius, width / 2, height / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + width, y, x + width, y + height, r);
+  ctx.arcTo(x + width, y + height, x, y + height, r);
+  ctx.arcTo(x, y + height, x, y, r);
+  ctx.arcTo(x, y, x + width, y, r);
+  ctx.closePath();
+}
+
 function drawPitchHeatmap(canvas, items) {
   const { ctx, width, height } = setupCanvas(canvas);
-  const pitch = { x: 18, y: 20, width: width - 36, height: height - 50 };
+  const stadium = { x: 10, y: 8, width: width - 20, height: height - 38 };
+  const pitch = { x: 42, y: 39, width: width - 84, height: height - 88 };
   const max = Math.max(...items.map((item) => item.value), 1);
   const regions = [];
-  ctx.fillStyle = '#2a7655';
-  ctx.fillRect(pitch.x, pitch.y, pitch.width, pitch.height);
+
+  const stadiumGradient = ctx.createLinearGradient(0, stadium.y, 0, stadium.y + stadium.height);
+  stadiumGradient.addColorStop(0, '#071e18'); stadiumGradient.addColorStop(1, '#123f31');
+  ctx.fillStyle = stadiumGradient; roundedRect(ctx, stadium.x, stadium.y, stadium.width, stadium.height, 14); ctx.fill();
+  ctx.fillStyle = '#214c3d'; roundedRect(ctx, stadium.x + 7, stadium.y + 7, stadium.width - 14, stadium.height - 14, 11); ctx.fill();
+
+  ctx.fillStyle = 'rgba(255,255,255,.12)';
+  for (let index = 0; index < 15; index += 1) {
+    const topX = stadium.x + 18 + index * (stadium.width - 36) / 15;
+    const bottomX = topX;
+    ctx.fillRect(topX, stadium.y + 12, 4, 4);
+    ctx.fillRect(bottomX, stadium.y + stadium.height - 17, 4, 4);
+  }
+  for (let row = 0; row < 3; row += 1) {
+    ctx.fillStyle = row === 1 ? 'rgba(255,211,107,.34)' : 'rgba(255,255,255,.18)';
+    ctx.fillRect(stadium.x + 12, stadium.y + 18 + row * 6, stadium.width - 24, 2);
+    ctx.fillRect(stadium.x + 12, stadium.y + stadium.height - 31 + row * 6, stadium.width - 24, 2);
+  }
+  ctx.fillStyle = '#d9eee0';
+  [[stadium.x + 13, stadium.y + 13], [stadium.x + stadium.width - 17, stadium.y + 13], [stadium.x + 13, stadium.y + stadium.height - 17], [stadium.x + stadium.width - 17, stadium.y + stadium.height - 17]].forEach(([x, y]) => {
+    ctx.beginPath(); ctx.arc(x, y, 2.5, 0, Math.PI * 2); ctx.fill();
+  });
+  ctx.fillStyle = 'rgba(255,255,255,.72)'; ctx.font = '700 9px system-ui'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  ctx.fillText('STADIUM / GOAL-ZONE MAP', width / 2, 14);
+
+  ctx.fillStyle = '#2a7655'; ctx.fillRect(pitch.x, pitch.y, pitch.width, pitch.height);
   ctx.fillStyle = 'rgba(255,255,255,.055)';
   for (let index = 0; index < 10; index += 1) {
     if (index % 2 === 0) ctx.fillRect(pitch.x + index * pitch.width / 10, pitch.y, pitch.width / 10, pitch.height);
   }
-  ctx.strokeStyle = 'rgba(255,255,255,.75)'; ctx.lineWidth = 1.2;
+  ctx.strokeStyle = 'rgba(255,255,255,.8)'; ctx.lineWidth = 1.2;
   ctx.strokeRect(pitch.x, pitch.y, pitch.width, pitch.height);
   ctx.beginPath(); ctx.moveTo(pitch.x + pitch.width / 2, pitch.y); ctx.lineTo(pitch.x + pitch.width / 2, pitch.y + pitch.height); ctx.stroke();
   ctx.beginPath(); ctx.arc(pitch.x + pitch.width / 2, pitch.y + pitch.height / 2, pitch.height * .16, 0, Math.PI * 2); ctx.stroke();
   ctx.strokeRect(pitch.x + pitch.width * .74, pitch.y + pitch.height * .18, pitch.width * .22, pitch.height * .64);
   ctx.strokeRect(pitch.x + pitch.width * .88, pitch.y + pitch.height * .34, pitch.width * .08, pitch.height * .32);
-  ctx.fillStyle = 'rgba(255,255,255,.75)'; ctx.font = '11px system-ui'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-  ctx.fillText('goal location · attacking direction →', width / 2, height - 20);
+  ctx.strokeStyle = 'rgba(255,255,255,.35)';
+  ctx.strokeRect(pitch.x - 5, pitch.y + pitch.height * .34, 5, pitch.height * .32);
+  ctx.strokeRect(pitch.x + pitch.width, pitch.y + pitch.height * .34, 5, pitch.height * .32);
+  ctx.fillStyle = 'rgba(255,255,255,.72)'; ctx.font = '11px system-ui'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  ctx.fillText('goal zones · attacking direction →', width / 2, height - 20);
   items.forEach((item, index) => {
     const radius = 6 + Math.sqrt(item.value / max) * 17;
     const x = Math.min(pitch.x + pitch.width - radius - 2, Math.max(pitch.x + radius + 2, pitch.x + item.x * pitch.width));
@@ -627,8 +737,11 @@ async function initReport() {
   setText('top-scorer-goals', formatNumber(top[0]?.value));
   setText('top-team', groupSum(rows, 'team', 'goals')[0]?.label || '—');
   setText('top-team-goals', formatNumber(groupSum(rows, 'team', 'goals')[0]?.value));
-  setText('top-league', groupSum(rows, 'league', 'goals')[0]?.label || '—');
-  setText('top-league-goals', formatNumber(groupSum(rows, 'league', 'goals')[0]?.value));
+  const topLeague = rawGroupSum(rows, 'league', 'goals')[0];
+  setText('top-league', topLeague?.label || '—');
+  setText('top-league-goals', formatNumber(topLeague?.value));
+  const topLeagueBadge = document.getElementById('top-league-badge');
+  if (topLeagueBadge && topLeague) topLeagueBadge.innerHTML = leagueBadgeMarkup(topLeague.key);
   setText('top-contributor', topContribution[0]?.label || '—');
   setText('top-contributor-value', formatNumber(topContribution[0]?.value));
   const topMethod = methodTotals(rows, 'bodypart')[0];
@@ -643,19 +756,20 @@ async function initReport() {
   setText('top-season', bySeason(rows, 'goals').sort((a, b) => b.value - a.value)[0]?.label || '—');
   setText('top-season-goals', formatNumber(Math.max(...bySeason(rows, 'goals').map((item) => item.value))));
   setText('rows-note', `${formatNumber(rows.length)} player-season-team records were generated from ${formatNumber(unique(rows, 'season'))} seasons of recorded events.`);
-  renderScorerShirts(top);
+  renderScorerShirts(top, rows);
   renderLeagueBadges(rows);
   renderClubBadges(rows);
+  renderTopScorerTimeline(rows);
 
   reportChart('chart-top-scorers', rows, 'player', 'goals', { color: COLORS, maxItems: 10 });
   reportChart('chart-season-goals', rows, 'season', 'goals', { line: true, color: COLORS[1] });
-  reportChart('chart-league-goals', rows, 'league', 'goals', { horizontal: false, color: COLORS, maxItems: 5 });
+  reportChart('chart-league-goals', rows, 'league', 'goals', { horizontal: false, color: COLORS, maxItems: 5, iconFor: (item) => LEAGUE_BADGES[item.key] });
   reportChart('chart-contributions', rows, 'player', 'goal_contributions', { color: COLORS[2], maxItems: 10 });
   drawBars(document.getElementById('chart-methods'), methodTotals(rows, 'bodypart'), { horizontal: false, color: COLORS, maxItems: 3 });
   drawPitchHeatmap(document.getElementById('chart-location'), locationTotals(rows));
   reportChart('chart-cards', rows, 'player', 'yellow_cards', { color: COLORS[4], maxItems: 10 });
   reportChart('chart-teams', rows, 'team', 'goals', { color: COLORS, maxItems: 10 });
-  reportChart('chart-efficiency', rows, 'league', 'goals_per_event_match', { horizontal: false, color: COLORS[6], maxItems: 5, decimals: true, average: true });
+  reportChart('chart-efficiency', rows, 'league', 'goals_per_event_match', { horizontal: false, color: COLORS[6], maxItems: 5, decimals: true, average: true, iconFor: (item) => LEAGUE_BADGES[item.key] });
 }
 
 function addOptions(select, values, allLabel) {
@@ -691,8 +805,8 @@ function renderDashboard(rows) {
   const selectedMeasureFormat = (value) => metricFormat(metric, value);
   drawBars(document.getElementById('dash-breakdown-chart'), breakdownData, { color: COLORS, maxItems: 12, formatValue: selectedMeasureFormat });
   drawLine(document.getElementById('dash-season-chart'), bySeason(filtered, metric), { color: COLORS[1], formatValue: selectedMeasureFormat });
-  drawBars(document.getElementById('dash-goals-chart'), groupSum(filtered, 'league', 'goals'), { horizontal: false, color: COLORS[2], maxItems: 5 });
-  drawBars(document.getElementById('dash-discipline-chart'), groupSum(filtered, 'league', 'yellow_cards'), { horizontal: false, color: COLORS[4], maxItems: 5 });
+  drawBars(document.getElementById('dash-goals-chart'), groupSum(filtered, 'league', 'goals'), { horizontal: false, color: COLORS[2], maxItems: 5, iconFor: (item) => LEAGUE_BADGES[item.key] });
+  drawBars(document.getElementById('dash-discipline-chart'), groupSum(filtered, 'league', 'yellow_cards'), { horizontal: false, color: COLORS[4], maxItems: 5, iconFor: (item) => LEAGUE_BADGES[item.key] });
   drawBars(document.getElementById('dash-method-chart'), methodTotals(filtered, methodGroup), { horizontal: false, color: COLORS, maxItems: 5 });
   drawPitchHeatmap(document.getElementById('dash-location-chart'), locationTotals(filtered));
   renderTable(filtered, metric);

@@ -34,7 +34,7 @@
 
       <section class="report-section">
         <div><div class="section-number">01 / THE LEADERBOARD</div><h2>One scorer sits clearly above the rest.</h2><p class="finding"><strong id="top-scorer">Loading…</strong> leads the player-season records with <strong id="top-scorer-goals">—</strong> goals. The chart ranks the ten strongest scorers after the event log is grouped by player.</p><p class="finding">This is a count of recorded goal events, not a claim about official league-wide appearances. A player can appear more than once in a season if the source records separate club rows.</p></div>
-        <div class="chart-card"><div class="chart-plot" id="chart-top-scorers"></div><p class="chart-note">Total recorded goals by player across the full source window.</p><div class="scorer-shirts" id="scorer-shirts" aria-label="Top scorer goal shirts"></div></div>
+        <div class="chart-card"><div class="chart-plot" id="chart-top-scorers"></div><p class="chart-note">Total recorded goals by player across the full source window. Shirt colors and crests use each player’s highest-scoring club; the number is the goal total.</p><div class="scorer-shirts" id="scorer-shirts" aria-label="Top scorer goal shirts"></div></div>
       </section>
 
       <section class="report-section">
@@ -43,7 +43,7 @@
       </section>
 
       <section class="report-section">
-        <div><div class="section-number">03 / LEAGUES</div><h2>The leagues do not contribute equally to the goal total.</h2><p class="finding"><strong id="top-league">—</strong> contributes the largest league total at <strong id="top-league-goals">—</strong> goals. This difference is shaped by league size, season coverage, and the number of recorded events.</p><p class="finding">The codebook uses compact league labels. In the source, they correspond to the five domestic competitions in Germany, England, France, Italy, and Spain.</p></div>
+        <div><div class="section-number">03 / LEAGUES</div><h2>The leagues do not contribute equally to the goal total.</h2><p class="finding"><strong id="top-league">—</strong> <span id="top-league-badge" class="inline-identity" aria-label="Top league emblem"></span> contributes the largest league total at <strong id="top-league-goals">—</strong> goals. This difference is shaped by league size, season coverage, and the number of recorded events.</p><p class="finding">The codebook uses compact league labels. In the source, they correspond to the five domestic competitions in Germany, England, France, Italy, and Spain.</p></div>
         <div class="chart-card"><div class="chart-plot" id="chart-league-goals"></div><p class="chart-note">Recorded goals by league code.</p><div class="identity-rail" id="league-badges" aria-label="League emblems"></div></div>
       </section>
 
@@ -75,6 +75,21 @@
       <section class="report-section">
         <div><div class="section-number">09 / RATE</div><h2>Rates add context to raw totals.</h2><p class="finding">The final chart averages each player-season record’s goals per match with a recorded event for the league. This is a lightweight rate, designed to make unequal row counts easier to compare.</p><p class="finding">The dashboard also includes finishing rate and on-target rate. Use rates carefully: the event data does not include a complete official minutes-played or appearance field.</p></div>
         <div class="chart-card"><div class="chart-plot" id="chart-efficiency"></div><p class="chart-note">Average recorded goals per event-bearing match by league.</p></div>
+      </section>
+
+      <section class="report-section scorer-timeline-section">
+        <div>
+          <div class="section-number">10 / SCORER TIMELINE</div>
+          <h2>The top ten can be followed season by season.</h2>
+          <p class="finding">This table follows the ten highest total scorers through the source’s season codes <strong>2012–2017</strong>, corresponding to the available 2011/12–2016/17 window. Each season cell shows recorded goals and the club with the most goals for that player in that season.</p>
+          <p class="finding">The primary-club column uses the player’s highest-scoring club across the full source period. It is a useful team breakdown, but it does not mean the player stayed at that club for every season.</p>
+          <div class="scope-grid" aria-label="Competition coverage">
+            <div class="scope-item scope-included"><strong>INCLUDED</strong><span>Domestic league events</span></div>
+            <div class="scope-item scope-missing"><strong>NOT IN SOURCE</strong><span>Champions League goals</span></div>
+            <div class="scope-item scope-missing"><strong>NOT IN SOURCE</strong><span>National-team international goals</span></div>
+          </div>
+        </div>
+        <div class="chart-card timeline-card"><div id="top-scorer-timeline" class="timeline-wrap"></div><p class="chart-note">Team crests and league badges identify the competition context; totals remain event counts from the provided domestic files.</p></div>
       </section>
 
       <section class="method-card">
