@@ -69,7 +69,7 @@
 
       <section class="report-section">
         <div><div class="section-number">08 / GOAL LOCATION</div><h2>Goals cluster around the central scoring zones.</h2><p class="finding"><strong id="top-location">—</strong> is the most common recorded location with <strong id="top-location-goals">—</strong> goals. The pitch view turns the dictionary’s location codes into a spatial summary.</p><p class="finding">These are coded zones, not exact shot coordinates. Hover over each glowing zone to see the count behind it.</p></div>
-        <div class="chart-card pitch-card"><canvas id="chart-location"></canvas><p class="chart-note">Goal locations are approximate zones from the source codebook, not stadium locations.</p></div>
+        <div class="chart-card pitch-card"><div class="stadium-visual"><img src="assets/stadium/camp-nou-render.jpg" alt="Architectural rendering of Camp Nou" loading="lazy"><div><strong>CAMP NOU</strong><span>Stadium rendering · goal-zone context</span></div></div><canvas id="chart-location"></canvas><p class="chart-note">Camp Nou sets the venue context; hover the coded pitch zones for exact recorded values. These are approximate zones from the source codebook, not stadium locations.</p></div>
       </section>
 
       <section class="report-section">
@@ -98,7 +98,7 @@
         <p id="rows-note">Loading the derived row count…</p>
         <p>The source match file contributes date, season, league, country, teams, and score. The source event file contributes the player and event measures. We join on <code>id_odsp</code>, remove events with a missing player or missing match join, then group by season, league, country, player, and event team.</p>
         <p>Goals, attempts, shots on target, key passes, corners, fouls, cards, substitutions, offsides, handballs, penalties conceded, and recorded assists are all sums of coded events. Goals per event-bearing match is goals divided by distinct joined match IDs. The source contains domestic leagues only; it does not contain national-team international matches.</p>
-        <p class="asset-credit">League and club badge artwork is loaded as visual reference from <a href="https://www.thesportsdb.com/" target="_blank" rel="noreferrer">TheSportsDB</a> and <a href="https://www.api-football.com/" target="_blank" rel="noreferrer">API-Football media</a>. The goal shirts are original CSS/SVG graphics generated for this project.</p>
+        <p class="asset-credit">League and club badge artwork is loaded as visual reference from <a href="https://www.thesportsdb.com/" target="_blank" rel="noreferrer">TheSportsDB</a> and <a href="https://www.api-football.com/" target="_blank" rel="noreferrer">API-Football media</a>. Historical shirt photos are linked to their <a href="https://www.footballshirtculture.com/" target="_blank" rel="noreferrer">Football Shirt Culture</a>, <a href="https://www.classicfootballshirts.co.uk/" target="_blank" rel="noreferrer">Classic Football Shirts</a>, or eBay source pages from each card. The Camp Nou rendering is from <a href="https://www.fcbarcelona.com/en/club/news/3532388/barcelona-city-councils-government-commission-approves-first-phase-of-works-licence-for-restructure-of-camp-nou" target="_blank" rel="noreferrer">FC Barcelona</a>; goal-count overlays and data visuals are original project UI.</p>
         <p><a href="dashboard.html">Explore the same calculations in the interactive dashboard →</a></p>
       </section>
     </section>

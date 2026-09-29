@@ -105,15 +105,26 @@ const CLUB_BADGES = {
   Lille: ['assets/badges/club-lille.png', 'LOSC'],
 };
 
-const JERSEY_THEMES = {
-  Barcelona: { primary: '#a50044', secondary: '#004d98', accent: '#edbb00', text: '#fff', pattern: 'stripes' },
-  'Real Madrid': { primary: '#f8f8f8', secondary: '#2f65a8', accent: '#d7a93b', text: '#183c70', pattern: 'solid' },
-  'Paris Saint-Germain': { primary: '#071b49', secondary: '#e30613', accent: '#fff', text: '#fff', pattern: 'band' },
-  'Borussia Dortmund': { primary: '#f6d500', secondary: '#111', accent: '#111', text: '#111', pattern: 'solid' },
-  Napoli: { primary: '#12a4dc', secondary: '#fff', accent: '#fff', text: '#fff', pattern: 'solid' },
-  Lyon: { primary: '#1b3d7a', secondary: '#e30613', accent: '#fff', text: '#fff', pattern: 'band' },
-  Chelsea: { primary: '#034694', secondary: '#fff', accent: '#dba111', text: '#fff', pattern: 'solid' },
-  'Atletico Madrid': { primary: '#cb3524', secondary: '#fff', accent: '#1d428a', text: '#fff', pattern: 'stripes' },
+const KIT_IMAGES = {
+  Barcelona: 'assets/kits/barcelona-2014-15.jpg',
+  'Real Madrid': 'assets/kits/real-madrid-2012-13.jpg',
+  'Bayern Munich': 'assets/kits/bayern-2012-13.jpg',
+  'Paris Saint-Germain': 'assets/kits/psg-2014-15.jpg',
+  'Borussia Dortmund': 'assets/kits/dortmund-2012-13.jpg',
+  Napoli: 'assets/kits/napoli-2012-13.jpg',
+  Lyon: 'assets/kits/lyon-2012-13.jpg',
+  Chelsea: 'assets/kits/chelsea-2011-12.jpg',
+};
+
+const KIT_SOURCES = {
+  Barcelona: 'https://www.footballshirtculture.com/14-15-kits/barcelona-2014-2015-nike-home-football-shirt.html',
+  'Real Madrid': 'https://www.classicfootballshirts.co.uk/2012-13-real-madrid-home-shirt-410-l-rmdh12470325.html',
+  'Bayern Munich': 'https://www.classicfootballshirts.co.uk/2012-13-bayern-munich-home-shirt-410-l-bynh12741667.html',
+  'Paris Saint-Germain': 'https://www.classicfootballshirts.co.uk/2014-15-paris-saint-germain-home-shirt-510-xlboys-psgh14423580.html',
+  'Borussia Dortmund': 'https://www.classicfootballshirts.co.uk/2012-13-borussia-dortmund-home-shirt-610-l-dorh12576468.html',
+  Napoli: 'https://www.classicfootballshirts.co.uk/2011-12-napoli-home-shirt-cavani-7-510-xl-naph11210354.html',
+  Lyon: 'https://www.classicfootballshirts.co.uk/2014-15-lyon-home-shirt-510-xl-lynh1463885.html',
+  Chelsea: 'https://www.ebay.com/itm/226123305737',
 };
 
 const METHOD_GROUPS = {
@@ -257,27 +268,18 @@ function renderClubBadges(rows) {
   container.innerHTML = entries.map((entry) => `<article class="identity-tile"><div>${teamBadgeMarkup(entry.key)}</div><strong>${escapeHtml(entry.label)}</strong><span>${formatNumber(entry.value)} goals</span></article>`).join('');
 }
 
-function jerseyTheme(team) {
-  return JERSEY_THEMES[team] || { primary: '#116149', secondary: '#cfe8d8', accent: '#ffd36b', text: '#fff', pattern: 'solid' };
-}
-
-function shirtSvg(number, rank, team) {
-  const theme = jerseyTheme(team);
-  const badge = CLUB_BADGES[team]?.[0] || '';
-  const pattern = theme.pattern === 'stripes'
-    ? '<path class="shirt-stripe" d="M29 12 39 99h9L38 12zm19 0 11 87h9L57 12z"></path>'
-    : theme.pattern === 'band'
-      ? '<path class="shirt-band" d="M14 30h72v17H14z"></path>'
-      : '';
-  return `<svg class="goal-shirt" viewBox="0 0 100 112" role="img" aria-label="${escapeHtml(formatNumber(number))} goals for ${escapeHtml(team)}" style="--shirt-primary:${theme.primary};--shirt-secondary:${theme.secondary};--shirt-accent:${theme.accent};--shirt-text:${theme.text}">
-    <path class="shirt-body" d="M29 12 8 24l12 18 10-6v59h40V36l10 6 12-18-21-12-9 12H38z"></path>
-    ${pattern}
-    <path class="shirt-sleeve" d="M8 24 29 12l4 9-13 15zM92 24 71 12l-4 9 13 15z"></path>
-    <path class="shirt-collar" d="M38 12c1 8 5 12 12 12s11-4 12-12l-6-4H44z"></path>
-    ${badge ? `<image href="${escapeHtml(badge)}" x="42" y="27" width="16" height="16" preserveAspectRatio="xMidYMid meet"></image>` : ''}
-    <text class="shirt-rank" x="50" y="57" text-anchor="middle">#${rank}</text>
-    <text class="shirt-number" x="50" y="80" text-anchor="middle">${escapeHtml(formatNumber(number))}</text>
-  </svg>`;
+function kitImageMarkup(number, rank, team) {
+  const image = KIT_IMAGES[team];
+  const source = KIT_SOURCES[team];
+  if (!image) {
+    return `<div class="kit-visual kit-fallback" title="${escapeHtml(team)} crest fallback">${teamBadgeMarkup(team)}<span>${escapeHtml(shortLabel(team, 12))}</span></div>`;
+  }
+  return `<div class="kit-visual" title="${escapeHtml(team)} historical home shirt">
+    <img class="kit-photo" src="${escapeHtml(image)}" alt="${escapeHtml(team)} historical home shirt" loading="lazy" onerror="this.style.display='none'">
+    <span class="kit-rank">#${rank}</span>
+    <span class="kit-goal-badge"><strong>${formatNumber(number)}</strong><small>GOALS</small></span>
+    ${source ? `<a class="kit-source" href="${escapeHtml(source)}" target="_blank" rel="noreferrer">SOURCE</a>` : ''}
+  </div>`;
 }
 
 function topTeamForPlayer(rows, player, season = null) {
@@ -288,10 +290,13 @@ function topTeamForPlayer(rows, player, season = null) {
 function renderScorerShirts(top, rows) {
   const container = document.getElementById('scorer-shirts');
   if (!container) return;
-  container.innerHTML = top.slice(0, 8).map((entry, index) => `<article class="scorer-shirt-card">
-    ${shirtSvg(entry.value, index + 1, topTeamForPlayer(rows, entry.key))}
-    <strong>${escapeHtml(entry.label)}</strong><span>${formatNumber(entry.value)} goals</span><small>${escapeHtml(topTeamForPlayer(rows, entry.key))}</small>
-  </article>`).join('');
+  container.innerHTML = top.slice(0, 8).map((entry, index) => {
+    const team = topTeamForPlayer(rows, entry.key);
+    return `<article class="scorer-shirt-card" title="${escapeHtml(entry.label)}: ${formatNumber(entry.value)} recorded goals">
+      ${kitImageMarkup(entry.value, index + 1, team)}
+      <strong>${escapeHtml(entry.label)}</strong><span>${formatNumber(entry.value)} goals</span><small>${escapeHtml(team)}</small>
+    </article>`;
+  }).join('');
 }
 
 function seasonDisplay(value) {
@@ -324,7 +329,7 @@ function renderTopScorerTimeline(rows) {
       if (!entry || entry.goals === 0) return '<div class="timeline-cell timeline-empty">—</div>';
       const team = [...entry.teams.entries()].sort((a, b) => b[1] - a[1])[0][0];
       const intensity = Math.max(.12, Math.min(.85, entry.goals / maxGoals));
-      return `<div class="timeline-cell" style="--cell-alpha:${intensity.toFixed(2)}"><strong>${formatNumber(entry.goals)}</strong><span>${teamBadgeMarkup(team)}<em>${escapeHtml(shortLabel(team, 13))}</em></span></div>`;
+      return `<div class="timeline-cell" title="${escapeHtml(player.label)} · ${seasonDisplay(season)} · ${formatNumber(entry.goals)} goals · ${escapeHtml(team)}" style="--cell-alpha:${intensity.toFixed(2)}"><strong>${formatNumber(entry.goals)}</strong><span>${teamBadgeMarkup(team)}<em>${escapeHtml(shortLabel(team, 13))}</em></span></div>`;
     }).join('');
     return `<div class="timeline-row"><div class="timeline-player"><strong>${escapeHtml(player.label)}</strong><span>${formatNumber(player.value)} total</span></div><div class="timeline-club">${teamBadgeMarkup(primaryTeam)}<span>${escapeHtml(shortLabel(primaryTeam, 18))}</span></div>${cells}</div>`;
   }).join('');
