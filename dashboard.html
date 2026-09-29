@@ -5,12 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Soccer, by the event | Dashboard</title>
   <link rel="stylesheet" href="assets/styles.css">
+  <script>
+    try {
+      const savedTheme = localStorage.getItem('soccer-theme');
+      if (savedTheme === 'dark' || savedTheme === 'light') document.documentElement.dataset.theme = savedTheme;
+    } catch (error) {}
+  </script>
   <script defer src="assets/site.js"></script>
 </head>
 <body data-page="dashboard">
   <nav class="site-nav">
     <a class="brand" href="index.html">SOCCER / BY THE EVENT</a>
-    <div class="nav-links"><a href="index.html">← Report</a><a class="active" href="dashboard.html">Dashboard</a></div>
+    <div class="nav-links"><a href="index.html">← Report</a><a class="active" href="dashboard.html">Dashboard</a><button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false"><span aria-hidden="true">☾</span><span>Dark mode</span></button></div>
   </nav>
 
   <main class="content-shell">

@@ -299,6 +299,23 @@ function renderScorerShirts(top, rows) {
   }).join('');
 }
 
+function renderHeroTopPlayers(top, rows) {
+  const container = document.getElementById('hero-top-players');
+  if (!container) return;
+  container.innerHTML = top.slice(0, 3).map((entry, index) => {
+    const team = topTeamForPlayer(rows, entry.key);
+    const image = KIT_IMAGES[team];
+    return `<article class="hero-player-card" tabindex="0" title="${escapeHtml(entry.label)}: ${formatNumber(entry.value)} recorded goals">
+      <div class="hero-player-kit">
+        ${image ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(team)} historical home shirt" loading="lazy" onerror="this.style.display='none'">` : ''}
+        <span>0${index + 1}</span>
+      </div>
+      <div class="hero-player-info"><strong>${escapeHtml(entry.label)}</strong><small>${escapeHtml(team)}</small></div>
+      <div class="hero-player-goals"><strong>${formatNumber(entry.value)}</strong><small>GOALS</small></div>
+    </article>`;
+  }).join('');
+}
+
 function seasonDisplay(value) {
   const season = Number(value);
   return Number.isFinite(season) ? `${season - 1}/${String(season).slice(-2)}` : String(value);
@@ -845,6 +862,7 @@ async function initReport() {
   setText('top-season-goals', formatNumber(Math.max(...bySeason(rows, 'goals').map((item) => item.value))));
   setText('rows-note', `${formatNumber(rows.length)} player-season-team records were generated from ${formatNumber(unique(rows, 'season'))} seasons of recorded events.`);
   renderScorerShirts(top, rows);
+  renderHeroTopPlayers(top, rows);
   renderLeagueBadges(rows);
   renderClubBadges(rows);
   renderTopScorerTimeline(rows);
@@ -928,6 +946,24 @@ function setupScrollReveal() {
   elements.forEach((element) => observer.observe(element));
 }
 
+function setupThemeToggle() {
+  const button = document.getElementById('theme-toggle');
+  if (!button) return;
+  const root = document.documentElement;
+  const setTheme = (theme) => {
+    root.dataset.theme = theme;
+    const dark = theme === 'dark';
+    button.setAttribute('aria-pressed', String(dark));
+    button.innerHTML = `<span aria-hidden="true">${dark ? '☀' : '☾'}</span><span>${dark ? 'Light mode' : 'Dark mode'}</span>`;
+  };
+  setTheme(root.dataset.theme === 'dark' ? 'dark' : 'light');
+  button.addEventListener('click', () => {
+    const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
+    try { localStorage.setItem('soccer-theme', next); } catch (error) {}
+    setTheme(next);
+  });
+}
+
 async function initDashboard() {
   const rows = await loadRows();
   const values = (field) => [...new Set(rows.map((row) => row[field]).filter(Boolean))].sort((a, b) => String(a).localeCompare(String(b), undefined, { numeric: true }));
@@ -950,6 +986,7 @@ async function initDashboard() {
 
 document.addEventListener('DOMContentLoaded', async () => {
   setupScrollReveal();
+  setupThemeToggle();
   try {
     if (document.body.dataset.page === 'report') await initReport();
     if (document.body.dataset.page === 'dashboard') await initDashboard();

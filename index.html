@@ -5,12 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Soccer, by the event | Report</title>
   <link rel="stylesheet" href="assets/styles.css">
+  <script>
+    try {
+      const savedTheme = localStorage.getItem('soccer-theme');
+      if (savedTheme === 'dark' || savedTheme === 'light') document.documentElement.dataset.theme = savedTheme;
+    } catch (error) {}
+  </script>
   <script defer src="assets/site.js"></script>
 </head>
 <body data-page="report">
   <nav class="site-nav">
     <a class="brand" href="index.html">SOCCER / BY THE EVENT</a>
-    <div class="nav-links"><a class="active" href="index.html">Report</a><a href="dashboard.html">Dashboard →</a></div>
+    <div class="nav-links"><a class="active" href="index.html">Report</a><a href="dashboard.html">Dashboard →</a><button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false"><span aria-hidden="true">☾</span><span>Dark mode</span></button></div>
   </nav>
 
   <main>
@@ -32,6 +38,10 @@
           </div>
           <div class="hero-pitch-line"><span>DOMESTIC EVENT LOG</span><strong>HOVER TO SCOUT</strong></div>
         </aside>
+      </div>
+      <div class="hero-topline">
+        <div class="hero-feature-head"><span>TOP SCORER BOARD</span><span>FULL SOURCE WINDOW · RECORDED GOALS</span></div>
+        <div class="hero-player-rail" id="hero-top-players" aria-label="Top three recorded scorers"></div>
       </div>
     </header>
 
