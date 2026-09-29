@@ -878,14 +878,82 @@ async function initReport() {
   renderConversionFunnel(document.getElementById('chart-conversion-funnel'), rows);
 }
 
-function addOptions(select, values, allLabel) {
+function addOptions(select, values, allLabel, selectedValue = select.value) {
   select.innerHTML = `<option value="all">${allLabel}</option>`;
   values.forEach((value) => {
     const label = select.id === 'filter-player' ? displayName(value) : select.id === 'filter-league' ? displayCategory('league', value) : select.id === 'filter-country' ? displayCategory('country', value) : value;
     select.insertAdjacentHTML('beforeend', `<option value="${escapeHtml(value)}">${escapeHtml(label)}</option>`);
   });
+  const available = [...select.options].some((option) => option.value === String(selectedValue));
+  select.value = available ? String(selectedValue) : 'all';
 }
 function escapeHtml(value) { return String(value).replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char])); }
+
+function renderLeaguePicker(rows) {
+  const container = document.getElementById('league-picker');
+  if (!container) return;
+  const leagueEntries = rawGroupSum(rows, 'league', 'goals').map((entry) => ({
+    ...entry,
+    players: unique(rows.filter((row) => row.league === entry.key), 'player'),
+  }));
+  const entries = [{ key: 'all', label: 'All leagues', value: sum(rows, 'goals'), players: unique(rows, 'player') }, ...leagueEntries];
+  container.innerHTML = entries.map((entry) => {
+    const all = entry.key === 'all';
+    return `<button class="league-choice${all ? ' active' : ''}" type="button" data-league="${escapeHtml(entry.key)}" aria-pressed="${String(all)}">
+      <span class="league-choice-icon">${all ? '<span class="league-choice-ball" aria-hidden="true">⚽</span>' : leagueBadgeMarkup(entry.key)}</span>
+      <span class="league-choice-copy"><strong>${escapeHtml(entry.label)}</strong><small>${formatNumber(entry.value)} goals · ${formatNumber(entry.players)} players</small></span>
+    </button>`;
+  }).join('');
+}
+
+function updateLeaguePickerState() {
+  const selected = document.getElementById('filter-league')?.value || 'all';
+  document.querySelectorAll('#league-picker [data-league]').forEach((button) => {
+    const active = button.dataset.league === selected;
+    button.classList.toggle('active', active);
+    button.setAttribute('aria-pressed', String(active));
+  });
+}
+
+function syncExplorerOptions(rows) {
+  const season = document.getElementById('filter-season')?.value || 'all';
+  const country = document.getElementById('filter-country')?.value || 'all';
+  const leagueSelect = document.getElementById('filter-league');
+  const teamSelect = document.getElementById('filter-team');
+  const playerSelect = document.getElementById('filter-player');
+  const baseRows = rows.filter((row) => (season === 'all' || String(row.season) === season) && (country === 'all' || String(row.country) === country));
+  addOptions(leagueSelect, [...new Set(baseRows.map((row) => row.league).filter(Boolean))].sort(), 'All leagues', leagueSelect.value);
+  const league = leagueSelect.value;
+  const leagueRows = baseRows.filter((row) => league === 'all' || row.league === league);
+  addOptions(teamSelect, [...new Set(leagueRows.map((row) => row.team).filter(Boolean))].sort(), 'All teams', teamSelect.value);
+  const team = teamSelect.value;
+  const teamRows = leagueRows.filter((row) => team === 'all' || row.team === team);
+  addOptions(playerSelect, [...new Set(teamRows.map((row) => row.player).filter(Boolean))].sort((a, b) => displayName(a).localeCompare(displayName(b))), 'All players', playerSelect.value);
+  updateLeaguePickerState();
+}
+
+function updateScopeSummary(filtered) {
+  const league = document.getElementById('filter-league')?.value || 'all';
+  const team = document.getElementById('filter-team')?.value || 'all';
+  const player = document.getElementById('filter-player')?.value || 'all';
+  const season = document.getElementById('filter-season')?.value || 'all';
+  const country = document.getElementById('filter-country')?.value || 'all';
+  const labels = [
+    league === 'all' ? 'ALL LEAGUES' : displayCategory('league', league).toUpperCase(),
+    team === 'all' ? 'ALL TEAMS' : String(team).toUpperCase(),
+    player === 'all' ? 'ALL PLAYERS' : displayName(player).toUpperCase(),
+  ];
+  const breadcrumb = document.getElementById('scope-breadcrumb');
+  if (breadcrumb) breadcrumb.innerHTML = labels.map((label, index) => `${index ? '<b aria-hidden="true">›</b>' : ''}<span>${escapeHtml(label)}</span>`).join('');
+  const context = [
+    `${formatNumber(filtered.length)} records`,
+    `${formatNumber(unique(filtered, 'player'))} players`,
+    `${formatNumber(sum(filtered, 'goals'))} goals`,
+  ];
+  if (season !== 'all') context.push(seasonDisplay(season));
+  if (country !== 'all') context.push(displayCategory('country', country));
+  setText('scope-note', context.join(' · '));
+}
 
 function renderDashboard(rows) {
   const selected = {
@@ -901,6 +969,8 @@ function renderDashboard(rows) {
   const methodGroup = document.getElementById('method-group').value;
   const metricLabel = METRICS[metric].label;
   const metricTotal = metricValue(filtered, metric);
+  updateScopeSummary(filtered);
+  updateLeaguePickerState();
   setText('dash-records', formatNumber(filtered.length));
   setText('dash-players', formatNumber(unique(filtered, 'player')));
   setText('dash-metric-total', metricFormat(metric, metricTotal));
@@ -915,12 +985,13 @@ function renderDashboard(rows) {
   drawBars(document.getElementById('dash-discipline-chart'), groupSum(filtered, 'league', 'yellow_cards'), { horizontal: false, color: COLORS[4], maxItems: 5, iconFor: (item) => LEAGUE_BADGES[item.key] });
   drawBars(document.getElementById('dash-method-chart'), methodTotals(filtered, methodGroup), { horizontal: false, color: COLORS, maxItems: 5 });
   drawPitchHeatmap(document.getElementById('dash-location-chart'), locationTotals(filtered));
+  setText('table-view-label', `Current view / top ${Math.min(20, filtered.length)} records`);
   renderTable(filtered, metric);
 }
 
 function renderTable(rows, metric) {
   const body = document.querySelector('#dashboard-table tbody');
-  const sorted = [...rows].sort((a, b) => Number(b[metric] || 0) - Number(a[metric] || 0)).slice(0, 40);
+  const sorted = [...rows].sort((a, b) => Number(b[metric] || 0) - Number(a[metric] || 0)).slice(0, 20);
   body.innerHTML = sorted.map((row) => `<tr>
     <td>${escapeHtml(displayName(row.player))}</td><td><span class="table-team">${teamBadgeMarkup(row.team)}<span>${escapeHtml(row.team)}</span></span></td><td><span class="table-team">${leagueBadgeMarkup(row.league)}<span>${escapeHtml(displayCategory('league', row.league))}</span></span></td><td>${row.season}</td>
     <td>${metricFormat(metric, row[metric])}</td><td>${formatNumber(row.goals)}</td><td>${formatNumber(row.assists)}</td><td>${formatNumber(row.matches_with_events)}</td>
@@ -972,12 +1043,28 @@ async function initDashboard() {
   addOptions(document.getElementById('filter-country'), values('country'), 'All countries');
   addOptions(document.getElementById('filter-team'), values('team'), 'All teams');
   addOptions(document.getElementById('filter-player'), values('player'), 'All players');
-  ['filter-season', 'filter-league', 'filter-country', 'filter-team', 'filter-player', 'measure', 'breakdown', 'method-group'].forEach((id) => document.getElementById(id).addEventListener('change', () => renderDashboard(rows)));
+  renderLeaguePicker(rows);
+  syncExplorerOptions(rows);
+  ['filter-season', 'filter-league', 'filter-country', 'filter-team', 'filter-player', 'measure', 'breakdown', 'method-group'].forEach((id) => document.getElementById(id).addEventListener('change', () => {
+    if (['filter-season', 'filter-league', 'filter-country', 'filter-team'].includes(id)) syncExplorerOptions(rows);
+    renderDashboard(rows);
+  }));
+  document.getElementById('league-picker').addEventListener('click', (event) => {
+    const button = event.target.closest('[data-league]');
+    if (!button) return;
+    document.getElementById('filter-league').value = button.dataset.league;
+    document.getElementById('filter-team').value = 'all';
+    document.getElementById('filter-player').value = 'all';
+    document.getElementById('filter-country').value = 'all';
+    syncExplorerOptions(rows);
+    renderDashboard(rows);
+  });
   document.getElementById('reset-filters').addEventListener('click', () => {
     ['filter-season', 'filter-league', 'filter-country', 'filter-team', 'filter-player'].forEach((id) => { document.getElementById(id).value = 'all'; });
     document.getElementById('measure').value = 'goals';
     document.getElementById('breakdown').value = 'player';
     document.getElementById('method-group').value = 'bodypart';
+    syncExplorerOptions(rows);
     renderDashboard(rows);
   });
   document.getElementById('dashboard-loading').remove();

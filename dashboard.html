@@ -21,28 +21,41 @@
 
   <main class="content-shell">
     <header class="dashboard-header">
-      <div class="eyebrow">Interactive browser view</div>
-      <h1>Ask a different question.</h1>
-      <p class="lede">Filter the player-season records, switch the measure, and see the leaderboard recalculate in your browser.</p>
-      <div class="hero-meta"><span>LIVE FILTERS</span><span>GOALS · CARDS · METHODS</span><span>SCROLL + HOVER</span></div>
+      <div class="eyebrow">Interactive scouting room</div>
+      <h1>Scout the data.</h1>
+      <p class="lede">Start with a competition, narrow to a club, then find a player. Every chart and total updates to the same selection.</p>
+      <div class="hero-meta"><span>LEAGUE → TEAM → PLAYER</span><span>GOALS · CARDS · METHODS</span><span>HOVER TO INSPECT</span></div>
     </header>
 
     <p id="dashboard-loading" class="loading">Loading the derived soccer data…</p>
     <p id="load-error" class="finding"></p>
 
-    <section class="controls" aria-label="Dashboard filters">
-      <div class="control"><label for="filter-season">Time / season</label><select id="filter-season"></select></div>
-      <div class="control"><label for="filter-player">Group / player</label><select id="filter-player"></select></div>
-      <div class="control"><label for="filter-league">League</label><select id="filter-league"></select></div>
-      <div class="control"><label for="filter-country">Country</label><select id="filter-country"></select></div>
-      <div class="control"><label for="filter-team">Team</label><select id="filter-team"></select></div>
+    <section class="dashboard-explorer" aria-label="Browse the soccer data">
+      <div class="explorer-heading">
+        <div><div class="eyebrow">01 / BROWSE THE BOARD</div><h2>Choose your route in.</h2><p>Pick a league first. The team and player lists then become shorter and easier to scan.</p></div>
+        <div class="scope-breadcrumb" id="scope-breadcrumb" aria-live="polite"><span>ALL LEAGUES</span><b>›</b><span>ALL TEAMS</span><b>›</b><span>ALL PLAYERS</span></div>
+      </div>
+      <div class="league-picker" id="league-picker" role="group" aria-label="Choose a league"></div>
+      <div class="explorer-controls" aria-label="League, team, player, and season filters">
+        <div class="control"><label for="filter-league">Competition</label><select id="filter-league"></select></div>
+        <div class="control"><label for="filter-team">Club</label><select id="filter-team"></select></div>
+        <div class="control"><label for="filter-player">Player</label><select id="filter-player"></select></div>
+        <div class="control"><label for="filter-season">Season</label><select id="filter-season"></select></div>
+      </div>
+      <details class="advanced-filters">
+        <summary>More filters <span>Country, source context</span></summary>
+        <div class="advanced-filter-grid">
+          <div class="control"><label for="filter-country">Country</label><select id="filter-country"></select></div>
+          <button id="reset-filters" type="button">Reset all filters</button>
+        </div>
+      </details>
+      <div class="scope-footer"><span id="scope-note">All competitions · all clubs · all players</span><span>Values recalculate in your browser</span></div>
     </section>
 
     <section class="toolbar" aria-label="Chart switches">
       <div class="control"><label for="measure">Measure shown</label><select id="measure"><option value="goals">Goals</option><option value="assists">Assists</option><option value="goal_contributions">Goal contributions</option><option value="attempts">Shot attempts</option><option value="shots_on_target">Shots on target</option><option value="key_passes">Key passes</option><option value="yellow_cards">Yellow cards</option><option value="event_count">Recorded events</option><option value="finishing_rate">Finishing rate</option><option value="on_target_rate">On-target rate</option><option value="goals_per_event_match">Goals per event match</option></select></div>
       <div class="control"><label for="breakdown">Break chart down by</label><select id="breakdown"><option value="player">Player</option><option value="team">Team</option><option value="league">League</option><option value="country">Country</option><option value="season">Season</option></select></div>
       <div class="control"><label for="method-group">Goal method view</label><select id="method-group"><option value="bodypart">Body part</option><option value="situation">Scoring situation</option><option value="assist_method">Assist method</option></select></div>
-      <button id="reset-filters" type="button">Reset all filters</button>
     </section>
 
     <section class="stat-grid dashboard-stats">
@@ -53,16 +66,16 @@
     </section>
 
     <section class="dashboard-grid">
-      <article class="dashboard-card"><h3 id="dash-current-label">Selected measure by player</h3><div class="chart-plot" id="dash-breakdown-chart"></div></article>
-      <article class="dashboard-card"><h3>Measure across seasons</h3><div class="chart-plot" id="dash-season-chart"></div></article>
-      <article class="dashboard-card"><h3>Goals by league</h3><div class="chart-plot" id="dash-goals-chart"></div></article>
-      <article class="dashboard-card"><h3>Yellow cards by league</h3><div class="chart-plot" id="dash-discipline-chart"></div></article>
-      <article class="dashboard-card"><h3>Goals by selected method</h3><div class="chart-plot" id="dash-method-chart"></div></article>
-      <article class="dashboard-card pitch-card"><h3>Goal locations</h3><div class="stadium-visual"><img src="assets/stadium/camp-nou-render.jpg" alt="Architectural rendering of Camp Nou" loading="lazy"><div><strong>CAMP NOU</strong><span>Stadium rendering · goal-zone context</span></div></div><canvas id="dash-location-chart"></canvas><p class="chart-note">Hover a zone to see the exact recorded value in the current filter view.</p></article>
+      <article class="dashboard-card dashboard-card-primary"><div class="card-kicker">LEADERBOARD / CURRENT SCOPE</div><h3 id="dash-current-label">Selected measure by player</h3><div class="chart-plot" id="dash-breakdown-chart"></div></article>
+      <article class="dashboard-card dashboard-card-season"><div class="card-kicker">FORM OVER TIME</div><h3>Measure across seasons</h3><div class="chart-plot" id="dash-season-chart"></div></article>
+      <article class="dashboard-card"><div class="card-kicker">COMPETITION SPLIT</div><h3>Goals by league</h3><div class="chart-plot" id="dash-goals-chart"></div></article>
+      <article class="dashboard-card"><div class="card-kicker">DISCIPLINE CHECK</div><h3>Yellow cards by league</h3><div class="chart-plot" id="dash-discipline-chart"></div></article>
+      <article class="dashboard-card"><div class="card-kicker">HOW THEY SCORED</div><h3>Goals by selected method</h3><div class="chart-plot" id="dash-method-chart"></div></article>
+      <article class="dashboard-card pitch-card"><div class="card-kicker">SHOT MAP / CURRENT SCOPE</div><h3>Goal locations</h3><div class="stadium-visual"><img src="assets/stadium/camp-nou-render.jpg" alt="Architectural rendering of Camp Nou" loading="lazy"><div><strong>CAMP NOU</strong><span>Stadium rendering · goal-zone context</span></div></div><canvas id="dash-location-chart"></canvas><p class="chart-note">Hover a zone to see the exact recorded value in the current filter view.</p></article>
     </section>
 
     <section>
-      <div class="eyebrow" style="margin-bottom: 10px;">Current view / top 40 records</div>
+      <div class="eyebrow" id="table-view-label" style="margin-bottom: 10px;">Current view / top 20 records</div>
       <div class="table-wrap">
         <table id="dashboard-table">
           <thead><tr><th>Player</th><th>Team</th><th>League</th><th>Season</th><th>Selected measure</th><th>Goals</th><th>Assists</th><th>Event matches</th></tr></thead>
