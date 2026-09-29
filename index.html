@@ -86,8 +86,8 @@
       </section>
 
       <section class="report-section">
-        <div><div class="section-number">09 / RATE</div><h2>Rates add context to raw totals.</h2><p class="finding">The final chart averages each player-season record’s goals per match with a recorded event for the league. This is a lightweight rate, designed to make unequal row counts easier to compare.</p><p class="finding">The dashboard also includes finishing rate and on-target rate. Use rates carefully: the event data does not include a complete official minutes-played or appearance field.</p></div>
-        <div class="chart-card"><div class="chart-plot" id="chart-efficiency"></div><p class="chart-note">Average recorded goals per event-bearing match by league.</p></div>
+        <div><div class="section-number">09 / SHOT CONVERSION RACE</div><h2>Volume gets you noticed. Conversion gets you remembered.</h2><p class="finding">Among players with at least 100 recorded attempts, <strong id="conversion-leader">—</strong> leads the conversion race at <strong id="conversion-leader-rate">—</strong>, with <strong id="conversion-leader-goals">—</strong> goals from <strong id="conversion-leader-attempts">—</strong> attempts.</p><p class="finding">The funnel shows how the full event stream narrows from attempts to shots on target to goals. The player race beside it compares the leading goal totals by attempts, on-target shots, goals, and conversion.</p></div>
+        <div class="chart-card conversion-card"><div class="chart-plot" id="chart-conversion-funnel"></div><p class="chart-note">Aggregated across the full source window. Hover a funnel stage or player row for the exact values.</p></div>
       </section>
 
       <section class="report-section scorer-timeline-section">

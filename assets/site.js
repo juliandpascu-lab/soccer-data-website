@@ -546,6 +546,91 @@ function drawSvgLine(element, items, { color = COLORS[0], decimals = false, form
   renderSvg(element, content);
 }
 
+function playerShotTotals(rows) {
+  const grouped = new Map();
+  rows.forEach((row) => {
+    const player = row.player || 'Unknown';
+    if (!grouped.has(player)) grouped.set(player, { player, attempts: 0, shotsOnTarget: 0, goals: 0 });
+    const entry = grouped.get(player);
+    entry.attempts += Number(row.attempts || 0);
+    entry.shotsOnTarget += Number(row.shots_on_target || 0);
+    entry.goals += Number(row.goals || 0);
+  });
+  return [...grouped.values()].map((entry) => ({
+    ...entry,
+    label: displayName(entry.player),
+    conversion: entry.attempts ? entry.goals / entry.attempts : 0,
+    onTargetRate: entry.attempts ? entry.shotsOnTarget / entry.attempts : 0,
+  }));
+}
+
+function renderConversionFunnel(element, rows) {
+  if (!element) return;
+  const totals = [
+    { label: 'ATTEMPTS', value: sum(rows, 'attempts'), color: '#116149' },
+    { label: 'SHOTS ON TARGET', value: sum(rows, 'shots_on_target'), color: '#d79542' },
+    { label: 'GOALS', value: sum(rows, 'goals'), color: '#d66356' },
+  ];
+  const players = playerShotTotals(rows);
+  const eligible = players.filter((item) => item.attempts >= 100).sort((a, b) => b.conversion - a.conversion);
+  const leader = eligible[0];
+  setText('conversion-leader', leader?.label || '—');
+  setText('conversion-leader-rate', leader ? formatPercent(leader.conversion) : '—');
+  setText('conversion-leader-goals', leader ? formatNumber(leader.goals) : '—');
+  setText('conversion-leader-attempts', leader ? formatNumber(leader.attempts) : '—');
+
+  const race = [...players].sort((a, b) => b.goals - a.goals).slice(0, 5);
+  if (!totals.some((item) => item.value) || !race.length) {
+    renderSvg(element, '<text class="svg-empty" x="410" y="155" text-anchor="middle">No conversion data for this view</text>');
+    return;
+  }
+
+  const width = 820;
+  const funnelCenter = 238;
+  const maxStage = Math.max(totals[0].value, 1);
+  const widthFor = (value) => 126 + Math.sqrt(Math.max(value, 0) / maxStage) * 270;
+  const stageTop = 42;
+  const stageHeight = 70;
+  const stageGap = 8;
+  let content = '<g class="conversion-funnel">';
+  content += '<text class="funnel-heading" x="38" y="20">MATCH FLOW</text>';
+  content += '<text class="funnel-heading funnel-heading-right" x="488" y="20">TOP GOAL VOLUMES</text>';
+  content += '<text class="funnel-subheading" x="488" y="34">ATTEMPTS · ON TARGET · GOALS · CONVERSION</text>';
+
+  totals.forEach((stage, index) => {
+    const y = stageTop + index * (stageHeight + stageGap);
+    const topWidth = widthFor(stage.value);
+    const nextValue = totals[index + 1]?.value ?? stage.value * .66;
+    const bottomWidth = widthFor(nextValue);
+    const topLeft = funnelCenter - topWidth / 2;
+    const topRight = funnelCenter + topWidth / 2;
+    const bottomLeft = funnelCenter - bottomWidth / 2;
+    const bottomRight = funnelCenter + bottomWidth / 2;
+    const detail = index === 0
+      ? '100% of attempts'
+      : `${formatPercent(stage.value / totals[0].value)} of attempts`;
+    const nextDetail = index === totals.length - 1
+      ? `${formatPercent(stage.value / totals[1].value)} of shots on target`
+      : detail;
+    const path = `M ${topLeft.toFixed(2)} ${y} L ${topRight.toFixed(2)} ${y} L ${bottomRight.toFixed(2)} ${(y + stageHeight).toFixed(2)} L ${bottomLeft.toFixed(2)} ${(y + stageHeight).toFixed(2)} Z`;
+    content += `<g class="funnel-segment" tabindex="0"><title>${stage.label}: ${formatNumber(stage.value)} (${svgEscape(index === totals.length - 1 ? nextDetail : detail)})</title><path d="${path}" fill="${stage.color}"/><text class="funnel-label" x="${funnelCenter}" y="${y + 28}" text-anchor="middle">${stage.label}</text><text class="funnel-value" x="${funnelCenter}" y="${y + 51}" text-anchor="middle">${formatNumber(stage.value)}</text></g>`;
+    if (index < totals.length - 1) {
+      content += `<text class="funnel-rate" x="${funnelCenter + 216}" y="${y + stageHeight + 5}">${formatPercent(totals[index + 1].value / stage.value)} CONTINUE</text>`;
+    }
+  });
+  content += '<line class="funnel-divider" x1="466" y1="42" x2="466" y2="298"/>';
+
+  const maxGoals = Math.max(...race.map((item) => item.goals), 1);
+  race.forEach((item, index) => {
+    const y = 49 + index * 49;
+    const barWidth = Math.max(4, (item.goals / maxGoals) * 148);
+    const title = `${item.label}: ${formatNumber(item.attempts)} attempts, ${formatNumber(item.shotsOnTarget)} shots on target, ${formatNumber(item.goals)} goals, ${formatPercent(item.conversion)} conversion`;
+    content += `<g class="funnel-row" tabindex="0"><title>${svgEscape(title)}</title><rect class="funnel-row-bg" x="488" y="${y - 16}" width="298" height="40" rx="9"/><text class="funnel-rank" x="501" y="${y - 1}">0${index + 1}</text><text class="funnel-player" x="527" y="${y - 1}">${svgEscape(shortLabel(item.label, 17))}</text><text class="funnel-goals" x="774" y="${y - 1}" text-anchor="end">${formatNumber(item.goals)}</text><rect class="funnel-track" x="527" y="${y + 6}" width="148" height="6" rx="3"/><rect class="funnel-bar" x="527" y="${y + 6}" width="${barWidth.toFixed(2)}" height="6" rx="3"/><text class="funnel-detail" x="684" y="${y + 11}">${formatNumber(item.attempts)} att · ${formatNumber(item.shotsOnTarget)} SOT · ${formatPercent(item.conversion)}</text></g>`;
+  });
+  content += '</g>';
+  renderSvg(element, content, `0 0 ${width} 320`);
+}
+
 function drawBars(canvas, items, { horizontal = true, color = COLORS[0], maxItems = 10, decimals = false, formatValue = null, iconFor = null } = {}) {
   if (canvas && canvas.tagName && canvas.tagName.toLowerCase() !== 'canvas') {
     drawSvgBars(canvas, items, { horizontal, color, maxItems, decimals, formatValue, iconFor });
@@ -772,7 +857,7 @@ async function initReport() {
   drawPitchHeatmap(document.getElementById('chart-location'), locationTotals(rows));
   reportChart('chart-cards', rows, 'player', 'yellow_cards', { color: COLORS[4], maxItems: 10 });
   reportChart('chart-teams', rows, 'team', 'goals', { color: COLORS, maxItems: 10 });
-  reportChart('chart-efficiency', rows, 'league', 'goals_per_event_match', { horizontal: false, color: COLORS[6], maxItems: 5, decimals: true, average: true });
+  renderConversionFunnel(document.getElementById('chart-conversion-funnel'), rows);
 }
 
 function addOptions(select, values, allLabel) {
