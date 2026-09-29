@@ -54,6 +54,18 @@ const LOCATION_FIELDS = [
   { field: 'goal_location_not_recorded', label: 'Not recorded', x: .08, y: .90 },
 ];
 
+const NAME_OVERRIDES = {
+  'pierreemerick aubameyang': 'Pierre-Emerick Aubameyang',
+};
+
+const LEAGUE_NAMES = {
+  D1: 'Bundesliga',
+  E0: 'Premier League',
+  F1: 'Ligue 1',
+  I1: 'Serie A',
+  SP1: 'La Liga',
+};
+
 const METHOD_GROUPS = {
   bodypart: [
     { field: 'goal_right_foot', label: 'Right foot' },
@@ -85,6 +97,23 @@ function formatDecimal(value) {
 
 function formatPercent(value) {
   return `${(Number(value || 0) * 100).toLocaleString('en-US', { maximumFractionDigits: 1 })}%`;
+}
+
+function displayName(value) {
+  const raw = String(value || '').trim();
+  const override = NAME_OVERRIDES[raw.toLowerCase()];
+  if (override) return override;
+  return raw.toLowerCase().split(/([\s\-'])/).map((part) => {
+    if (!/[a-zà-ÿ]/i.test(part)) return part;
+    return part.charAt(0).toUpperCase() + part.slice(1);
+  }).join('');
+}
+
+function displayCategory(key, value) {
+  if (key === 'player') return displayName(value);
+  if (key === 'league') return LEAGUE_NAMES[value] || value;
+  if (key === 'country') return String(value || '').replace(/\b\w/g, (letter) => letter.toUpperCase());
+  return value;
 }
 
 function parseCSV(text) {
@@ -133,7 +162,7 @@ function groupSum(rows, key, metric) {
     const name = row[key] || 'Unknown';
     grouped.set(name, (grouped.get(name) || 0) + Number(row[metric] || 0));
   });
-  return [...grouped.entries()].map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value);
+  return [...grouped.entries()].map(([label, value]) => ({ label: displayCategory(key, label), value })).sort((a, b) => b.value - a.value);
 }
 function groupAverage(rows, key, metric) {
   const grouped = new Map();
@@ -144,7 +173,7 @@ function groupAverage(rows, key, metric) {
     grouped.get(name).push(Number(row[metric] || 0));
   });
   return [...grouped.entries()].map(([label, values]) => ({
-    label, value: values.reduce((a, b) => a + b, 0) / values.length,
+    label: displayCategory(key, label), value: values.reduce((a, b) => a + b, 0) / values.length,
   })).sort((a, b) => b.value - a.value);
 }
 
@@ -212,8 +241,8 @@ function attachTooltip(canvas, regions) {
     }
     if (!region) { tooltip.classList.remove('visible'); canvas.style.cursor = 'default'; return; }
     tooltip.innerHTML = `<strong>${escapeHtml(region.label)}</strong><span>${region.valueLabel || formatNumber(region.value)}</span>`;
-    tooltip.style.left = `${event.clientX + 14}px`;
-    tooltip.style.top = `${event.clientY + 14}px`;
+    tooltip.style.left = `${Math.min(event.clientX + 14, window.innerWidth - 190)}px`;
+    tooltip.style.top = `${Math.min(event.clientY + 14, window.innerHeight - 76)}px`;
     tooltip.classList.add('visible');
     canvas.style.cursor = 'crosshair';
   });
@@ -229,7 +258,7 @@ function drawBars(canvas, items, { horizontal = true, color = COLORS[0], maxItem
   const data = items.slice(0, maxItems);
   if (!data.length) { attachTooltip(canvas, []); return; }
   const regions = [];
-  const left = horizontal ? Math.min(138, width * .37) : 42;
+  const left = horizontal ? Math.min(190, Math.max(128, width * .42)) : 42;
   const bottom = horizontal ? 18 : 46;
   const plotWidth = width - left - 18;
   const plotHeight = height - bottom - 14;
@@ -243,7 +272,7 @@ function drawBars(canvas, items, { horizontal = true, color = COLORS[0], maxItem
       ctx.fillStyle = '#e8eee9'; ctx.fillRect(left, y, plotWidth, 16);
       ctx.fillStyle = Array.isArray(color) ? color[index % color.length] : color;
       ctx.fillRect(left, y, barWidth, 16);
-      ctx.fillStyle = '#53635d'; ctx.textAlign = 'right'; ctx.fillText(shortLabel(item.label), left - 8, y + 8);
+      ctx.fillStyle = '#53635d'; ctx.textAlign = 'right'; ctx.fillText(shortLabel(item.label, width < 440 ? 17 : 23), left - 8, y + 8);
       ctx.fillStyle = '#10221d'; ctx.textAlign = 'left'; ctx.fillText(decimals ? formatDecimal(item.value) : formatNumber(item.value), left + barWidth + 7, y + 8);
       regions.push({ x: left, y, width: plotWidth, height: 16, label: item.label, value: item.value, valueLabel: decimals ? formatDecimal(item.value) : formatNumber(item.value) });
     } else {
@@ -395,7 +424,10 @@ async function initReport() {
 
 function addOptions(select, values, allLabel) {
   select.innerHTML = `<option value="all">${allLabel}</option>`;
-  values.forEach((value) => { select.insertAdjacentHTML('beforeend', `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`); });
+  values.forEach((value) => {
+    const label = select.id === 'filter-player' ? displayName(value) : select.id === 'filter-league' ? displayCategory('league', value) : select.id === 'filter-country' ? displayCategory('country', value) : value;
+    select.insertAdjacentHTML('beforeend', `<option value="${escapeHtml(value)}">${escapeHtml(label)}</option>`);
+  });
 }
 function escapeHtml(value) { return String(value).replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char])); }
 
@@ -433,7 +465,7 @@ function renderTable(rows, metric) {
   const body = document.querySelector('#dashboard-table tbody');
   const sorted = [...rows].sort((a, b) => Number(b[metric] || 0) - Number(a[metric] || 0)).slice(0, 40);
   body.innerHTML = sorted.map((row) => `<tr>
-    <td>${escapeHtml(row.player)}</td><td>${escapeHtml(row.team)}</td><td>${escapeHtml(row.league)}</td><td>${row.season}</td>
+    <td>${escapeHtml(displayName(row.player))}</td><td>${escapeHtml(row.team)}</td><td>${escapeHtml(displayCategory('league', row.league))}</td><td>${row.season}</td>
     <td>${metricFormat(metric, row[metric])}</td><td>${formatNumber(row.goals)}</td><td>${formatNumber(row.assists)}</td><td>${formatNumber(row.matches_with_events)}</td>
   </tr>`).join('');
   if (!sorted.length) body.innerHTML = '<tr><td colspan="8" class="empty">No records match these filters.</td></tr>';
