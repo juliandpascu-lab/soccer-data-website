@@ -269,23 +269,31 @@ function drawBars(canvas, items, { horizontal = true, color = COLORS[0], maxItem
     if (horizontal) {
       const y = 18 + index * (plotHeight / data.length) + 3;
       const barWidth = Math.max(2, (item.value / max) * plotWidth);
+      const valueLabel = decimals ? formatDecimal(item.value) : formatNumber(item.value);
       ctx.fillStyle = '#e8eee9'; ctx.fillRect(left, y, plotWidth, 16);
       ctx.fillStyle = Array.isArray(color) ? color[index % color.length] : color;
       ctx.fillRect(left, y, barWidth, 16);
       ctx.fillStyle = '#53635d'; ctx.textAlign = 'right'; ctx.fillText(shortLabel(item.label, width < 440 ? 17 : 23), left - 8, y + 8);
-      ctx.fillStyle = '#10221d'; ctx.textAlign = 'left'; ctx.fillText(decimals ? formatDecimal(item.value) : formatNumber(item.value), left + barWidth + 7, y + 8);
-      regions.push({ x: left, y, width: plotWidth, height: 16, label: item.label, value: item.value, valueLabel: decimals ? formatDecimal(item.value) : formatNumber(item.value) });
+      const valueOutsideX = left + barWidth + 7;
+      const valueWidth = ctx.measureText(valueLabel).width;
+      if (valueOutsideX + valueWidth > width - 6) {
+        ctx.fillStyle = '#ffffff'; ctx.textAlign = 'right'; ctx.fillText(valueLabel, left + barWidth - 8, y + 8);
+      } else {
+        ctx.fillStyle = '#10221d'; ctx.textAlign = 'left'; ctx.fillText(valueLabel, valueOutsideX, y + 8);
+      }
+      regions.push({ x: left, y, width: plotWidth, height: 16, label: item.label, value: item.value, valueLabel });
     } else {
       const barWidth = plotWidth / data.length;
       const barHeight = (item.value / max) * plotHeight;
       const x = left + index * barWidth + 5;
+      const valueLabel = decimals ? formatDecimal(item.value) : formatNumber(item.value);
       ctx.fillStyle = Array.isArray(color) ? color[index % color.length] : color;
       ctx.fillRect(x, height - bottom - barHeight, Math.max(8, barWidth - 10), barHeight);
       ctx.fillStyle = '#53635d'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
       ctx.fillText(shortLabel(item.label, 13), x + (barWidth - 10) / 2, height - bottom + 9);
       ctx.fillStyle = '#10221d'; ctx.textBaseline = 'bottom';
-      ctx.fillText(decimals ? formatDecimal(item.value) : formatNumber(item.value), x + (barWidth - 10) / 2, height - bottom - barHeight - 6);
-      regions.push({ x, y: height - bottom - barHeight, width: Math.max(8, barWidth - 10), height: Math.max(barHeight, 10), label: item.label, value: item.value, valueLabel: decimals ? formatDecimal(item.value) : formatNumber(item.value) });
+      ctx.fillText(valueLabel, x + (barWidth - 10) / 2, Math.max(13, height - bottom - barHeight - 6));
+      regions.push({ x, y: height - bottom - barHeight, width: Math.max(8, barWidth - 10), height: Math.max(barHeight, 10), label: item.label, value: item.value, valueLabel });
     }
   });
   attachTooltip(canvas, regions);
