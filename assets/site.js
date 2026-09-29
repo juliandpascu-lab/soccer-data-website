@@ -745,8 +745,6 @@ async function initReport() {
   const topLeague = rawGroupSum(rows, 'league', 'goals')[0];
   setText('top-league', topLeague?.label || '—');
   setText('top-league-goals', formatNumber(topLeague?.value));
-  const topLeagueBadge = document.getElementById('top-league-badge');
-  if (topLeagueBadge && topLeague) topLeagueBadge.innerHTML = leagueBadgeMarkup(topLeague.key);
   setText('top-contributor', topContribution[0]?.label || '—');
   setText('top-contributor-value', formatNumber(topContribution[0]?.value));
   const topMethod = methodTotals(rows, 'bodypart')[0];
@@ -768,13 +766,13 @@ async function initReport() {
 
   reportChart('chart-top-scorers', rows, 'player', 'goals', { color: COLORS, maxItems: 10 });
   reportChart('chart-season-goals', rows, 'season', 'goals', { line: true, color: COLORS[1] });
-  reportChart('chart-league-goals', rows, 'league', 'goals', { horizontal: false, color: COLORS, maxItems: 5, iconFor: (item) => LEAGUE_BADGES[item.key] });
+  reportChart('chart-league-goals', rows, 'league', 'goals', { horizontal: false, color: COLORS, maxItems: 5 });
   reportChart('chart-contributions', rows, 'player', 'goal_contributions', { color: COLORS[2], maxItems: 10 });
   drawBars(document.getElementById('chart-methods'), methodTotals(rows, 'bodypart'), { horizontal: false, color: COLORS, maxItems: 3 });
   drawPitchHeatmap(document.getElementById('chart-location'), locationTotals(rows));
   reportChart('chart-cards', rows, 'player', 'yellow_cards', { color: COLORS[4], maxItems: 10 });
   reportChart('chart-teams', rows, 'team', 'goals', { color: COLORS, maxItems: 10 });
-  reportChart('chart-efficiency', rows, 'league', 'goals_per_event_match', { horizontal: false, color: COLORS[6], maxItems: 5, decimals: true, average: true, iconFor: (item) => LEAGUE_BADGES[item.key] });
+  reportChart('chart-efficiency', rows, 'league', 'goals_per_event_match', { horizontal: false, color: COLORS[6], maxItems: 5, decimals: true, average: true });
 }
 
 function addOptions(select, values, allLabel) {

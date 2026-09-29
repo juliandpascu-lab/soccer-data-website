@@ -15,11 +15,24 @@
 
   <main>
     <header class="hero">
-      <div class="eyebrow">Financial Data Analytics · Soccer event study</div>
-      <h1>Most goals since 2010? The event log tells it.</h1>
-      <p class="lede">This report turns 941,000 recorded match events into a player-season view of goals, scoring methods, cards, attempts, and chance creation across five European domestic leagues. The available source begins in 2011 and runs through 2017.</p>
-      <p class="byline">Prepared by Julian Pascu · source window: 2011–2017</p>
-      <div class="hero-meta"><span>⚡ MATCHDAY INTELLIGENCE</span><span>5 LEAGUES</span><span>68K+ PLAYER RECORDS</span><span>HOVER TO EXPLORE</span></div>
+      <div class="hero-layout">
+        <div class="hero-copy">
+          <div class="eyebrow">Financial Data Analytics · Soccer event study</div>
+          <h1>Most goals since 2010? The event log tells it.</h1>
+          <p class="lede">This report turns 941,000 recorded match events into a player-season view of goals, scoring methods, cards, attempts, and chance creation across five European domestic leagues. The available source begins in 2011 and runs through 2017.</p>
+          <p class="byline">Prepared by Julian Pascu · source window: 2011–2017</p>
+          <div class="hero-meta"><span>⚡ MATCHDAY INTELLIGENCE</span><span>5 LEAGUES</span><span>68K+ PLAYER RECORDS</span><span>HOVER TO EXPLORE</span></div>
+        </div>
+        <aside class="hero-matchcard" aria-label="Report matchday snapshot">
+          <div class="hero-matchcard-head"><span>DATA BOARD / 01</span><span class="hero-live"><i></i> REPORT READY</span></div>
+          <div class="hero-scoreboard">
+            <div class="hero-score-side"><span class="hero-ball">⚽</span><strong>2011/12</strong><small>FIRST SEASON</small></div>
+            <div class="hero-score"><strong>05</strong><span>LEAGUES</span></div>
+            <div class="hero-score-side"><span class="hero-whistle">90′</span><strong>2016/17</strong><small>FINAL SEASON</small></div>
+          </div>
+          <div class="hero-pitch-line"><span>DOMESTIC EVENT LOG</span><strong>HOVER TO SCOUT</strong></div>
+        </aside>
+      </div>
     </header>
 
     <section class="content-shell">
@@ -43,8 +56,8 @@
       </section>
 
       <section class="report-section">
-        <div><div class="section-number">03 / LEAGUES</div><h2>The leagues do not contribute equally to the goal total.</h2><p class="finding"><strong id="top-league">—</strong> <span id="top-league-badge" class="inline-identity" aria-label="Top league emblem"></span> contributes the largest league total at <strong id="top-league-goals">—</strong> goals. This difference is shaped by league size, season coverage, and the number of recorded events.</p><p class="finding">The codebook uses compact league labels. In the source, they correspond to the five domestic competitions in Germany, England, France, Italy, and Spain.</p></div>
-        <div class="chart-card"><div class="chart-plot" id="chart-league-goals"></div><p class="chart-note">Recorded goals by league code.</p><div class="identity-rail" id="league-badges" aria-label="League emblems"></div></div>
+        <div><div class="section-number">03 / LEAGUES</div><h2>The leagues do not contribute equally to the goal total.</h2><p class="finding"><strong id="top-league">—</strong> contributes the largest league total at <strong id="top-league-goals">—</strong> goals. This difference is shaped by league size, season coverage, and the number of recorded events.</p><p class="finding">The codebook uses compact league labels. In the source, they correspond to the five domestic competitions in Germany, England, France, Italy, and Spain.</p></div>
+        <div class="chart-card"><div class="chart-plot" id="chart-league-goals"></div><p class="chart-note">Recorded goals by league code. The league identity rail below is the single emblem view for this report.</p><div class="identity-rail league-rail" id="league-badges" aria-label="League emblems"></div></div>
       </section>
 
       <section class="report-section">
@@ -89,7 +102,7 @@
             <div class="scope-item scope-missing"><strong>NOT IN SOURCE</strong><span>National-team international goals</span></div>
           </div>
         </div>
-        <div class="chart-card timeline-card"><div id="top-scorer-timeline" class="timeline-wrap"></div><p class="chart-note">Team crests and league badges identify the competition context; totals remain event counts from the provided domestic files.</p></div>
+        <div class="chart-card timeline-card"><div id="top-scorer-timeline" class="timeline-wrap"></div><p class="chart-note">Team crests identify the club context; totals remain event counts from the provided domestic files.</p></div>
       </section>
 
       <section class="method-card">
