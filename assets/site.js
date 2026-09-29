@@ -237,6 +237,9 @@ async function initReport() {
   const topMethod = methodTotals(rows, 'bodypart')[0];
   setText('top-method', topMethod?.label || '—');
   setText('top-method-goals', formatNumber(topMethod?.value));
+  const topCards = groupSum(rows, 'player', 'yellow_cards');
+  setText('top-card-player', topCards[0]?.label || '—');
+  setText('top-card-value', formatNumber(topCards[0]?.value));
   setText('top-season', bySeason(rows, 'goals').sort((a, b) => b.value - a.value)[0]?.label || '—');
   setText('top-season-goals', formatNumber(Math.max(...bySeason(rows, 'goals').map((item) => item.value))));
   setText('rows-note', `${formatNumber(rows.length)} player-season-team records were generated from ${formatNumber(unique(rows, 'season'))} seasons of recorded events.`);
@@ -246,7 +249,7 @@ async function initReport() {
   reportChart('chart-league-goals', rows, 'league', 'goals', { horizontal: false, color: COLORS, maxItems: 5 });
   reportChart('chart-contributions', rows, 'player', 'goal_contributions', { color: COLORS[2], maxItems: 10 });
   drawBars(document.getElementById('chart-methods'), methodTotals(rows, 'bodypart'), { horizontal: false, color: COLORS, maxItems: 3 });
-  reportChart('chart-cards', rows, 'league', 'yellow_cards', { horizontal: false, color: COLORS[4], maxItems: 5 });
+  reportChart('chart-cards', rows, 'player', 'yellow_cards', { color: COLORS[4], maxItems: 10 });
   reportChart('chart-teams', rows, 'team', 'goals', { color: COLORS, maxItems: 10 });
   reportChart('chart-efficiency', rows, 'league', 'goals_per_event_match', { horizontal: false, color: COLORS[6], maxItems: 5, decimals: true, average: true });
 }
