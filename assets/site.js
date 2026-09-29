@@ -253,7 +253,128 @@ function attachTooltip(canvas, regions) {
   });
 }
 
-function drawBars(canvas, items, { horizontal = true, color = COLORS[0], maxItems = 10, decimals = false } = {}) {
+function svgEscape(value) {
+  return escapeHtml(value);
+}
+
+function svgValueLabel(value, decimals) {
+  return decimals ? formatDecimal(value) : formatNumber(value);
+}
+
+function renderSvg(element, content, viewBox = '0 0 820 300') {
+  element.innerHTML = `<svg class="svg-chart" viewBox="${viewBox}" role="img" aria-label="Interactive chart" preserveAspectRatio="xMidYMid meet">${content}</svg>`;
+  element.classList.add('interactive-chart');
+}
+
+function drawSvgBars(element, items, { horizontal = true, color = COLORS[0], maxItems = 10, decimals = false, formatValue = null } = {}) {
+  const data = items.slice(0, maxItems);
+  if (!data.length) {
+    renderSvg(element, '<text class="svg-empty" x="410" y="155" text-anchor="middle">No data for this view</text>');
+    return;
+  }
+  const width = 820;
+  const height = 300;
+  const colors = Array.isArray(color) ? color : [color];
+  const max = Math.max(...data.map((item) => Number(item.value) || 0), 1);
+  const valueText = (item) => formatValue ? formatValue(item.value) : svgValueLabel(item.value, decimals);
+  let content = '<g class="svg-grid">';
+  if (horizontal) {
+    const left = 218;
+    const right = 70;
+    const top = 18;
+    const bottom = 12;
+    const plotWidth = width - left - right;
+    const rowHeight = (height - top - bottom) / data.length;
+    data.forEach((item, index) => {
+      const rowY = top + index * rowHeight;
+      const barY = rowY + Math.max(2, (rowHeight - 18) / 2);
+      const barHeight = Math.min(18, rowHeight - 4);
+      const barWidth = Math.max(3, ((Number(item.value) || 0) / max) * plotWidth);
+      const label = shortLabel(item.label, 29);
+      const value = valueText(item);
+      const outside = left + barWidth + 9;
+      const inside = outside + 42 > width - 8;
+      const valueX = inside ? left + barWidth - 9 : outside;
+      content += `<g class="svg-mark" tabindex="0"><title>${svgEscape(item.label)}: ${svgEscape(value)}</title>`;
+      content += `<rect class="svg-track" x="${left}" y="${barY.toFixed(2)}" width="${plotWidth}" height="${barHeight.toFixed(2)}" rx="6"/>`;
+      content += `<rect class="svg-bar" x="${left}" y="${barY.toFixed(2)}" width="${barWidth.toFixed(2)}" height="${barHeight.toFixed(2)}" rx="6" fill="${colors[index % colors.length]}"/>`;
+      content += `<text class="svg-label" x="${left - 12}" y="${(barY + barHeight / 2 + 4).toFixed(2)}" text-anchor="end">${svgEscape(label)}</text>`;
+      content += `<text class="svg-value ${inside ? 'svg-value-inside' : ''}" x="${valueX.toFixed(2)}" y="${(barY + barHeight / 2 + 4).toFixed(2)}" text-anchor="${inside ? 'end' : 'start'}">${svgEscape(value)}</text></g>`;
+    });
+  } else {
+    const left = 52;
+    const right = 22;
+    const top = 24;
+    const bottom = 58;
+    const plotWidth = width - left - right;
+    const plotHeight = height - top - bottom;
+    const slot = plotWidth / data.length;
+    [0, .5, 1].forEach((fraction) => {
+      const y = top + plotHeight * (1 - fraction);
+      content += `<line class="svg-rule" x1="${left}" y1="${y.toFixed(2)}" x2="${width - right}" y2="${y.toFixed(2)}"/>`;
+      content += `<text class="svg-axis" x="${left - 10}" y="${(y + 4).toFixed(2)}" text-anchor="end">${svgEscape(formatValue ? formatValue(max * fraction) : svgValueLabel(max * fraction, decimals))}</text>`;
+    });
+    data.forEach((item, index) => {
+      const barWidth = Math.max(12, Math.min(58, slot - 12));
+      const x = left + index * slot + (slot - barWidth) / 2;
+      const barHeight = Math.max(2, ((Number(item.value) || 0) / max) * plotHeight);
+      const y = top + plotHeight - barHeight;
+      const value = valueText(item);
+      const label = shortLabel(item.label, 14);
+      content += `<g class="svg-mark" tabindex="0"><title>${svgEscape(item.label)}: ${svgEscape(value)}</title>`;
+      content += `<rect class="svg-bar" x="${x.toFixed(2)}" y="${y.toFixed(2)}" width="${barWidth.toFixed(2)}" height="${barHeight.toFixed(2)}" rx="6" fill="${colors[index % colors.length]}"/>`;
+      content += `<text class="svg-value" x="${(x + barWidth / 2).toFixed(2)}" y="${Math.max(16, y - 8).toFixed(2)}" text-anchor="middle">${svgEscape(value)}</text>`;
+      content += `<text class="svg-label svg-x-label" x="${(x + barWidth / 2).toFixed(2)}" y="${height - bottom + 20}" text-anchor="middle">${svgEscape(label)}</text></g>`;
+    });
+  }
+  content += '</g>';
+  renderSvg(element, content);
+}
+
+function drawSvgLine(element, items, { color = COLORS[0], decimals = false, formatValue = null } = {}) {
+  const data = items;
+  if (!data.length) {
+    renderSvg(element, '<text class="svg-empty" x="410" y="155" text-anchor="middle">No data for this view</text>');
+    return;
+  }
+  const width = 820;
+  const height = 300;
+  const left = 56;
+  const right = 24;
+  const top = 22;
+  const bottom = 58;
+  const plotWidth = width - left - right;
+  const plotHeight = height - top - bottom;
+  const max = Math.max(...data.map((item) => Number(item.value) || 0), 1);
+  const point = (item, index) => ({
+    x: left + (data.length === 1 ? plotWidth / 2 : index * plotWidth / (data.length - 1)),
+    y: top + plotHeight * (1 - (Number(item.value) || 0) / max),
+  });
+  let content = '<g class="svg-grid">';
+  [0, .5, 1].forEach((fraction) => {
+    const y = top + plotHeight * (1 - fraction);
+    content += `<line class="svg-rule" x1="${left}" y1="${y.toFixed(2)}" x2="${width - right}" y2="${y.toFixed(2)}"/>`;
+    content += `<text class="svg-axis" x="${left - 10}" y="${(y + 4).toFixed(2)}" text-anchor="end">${svgEscape(formatValue ? formatValue(max * fraction) : svgValueLabel(max * fraction, decimals))}</text>`;
+  });
+  const points = data.map(point);
+  content += `<polyline class="svg-line" fill="none" stroke="${color}" points="${points.map((item) => `${item.x.toFixed(2)},${item.y.toFixed(2)}`).join(' ')}"/>`;
+  data.forEach((item, index) => {
+    const current = points[index];
+    const value = formatValue ? formatValue(item.value) : svgValueLabel(item.value, decimals);
+    content += `<g class="svg-mark" tabindex="0"><title>${svgEscape(item.label)}: ${svgEscape(value)}</title>`;
+    content += `<circle class="svg-point" cx="${current.x.toFixed(2)}" cy="${current.y.toFixed(2)}" r="5" fill="${color}"/>`;
+    content += `<text class="svg-value" x="${current.x.toFixed(2)}" y="${Math.max(16, current.y - 12).toFixed(2)}" text-anchor="middle">${svgEscape(value)}</text>`;
+    content += `<text class="svg-label svg-x-label" x="${current.x.toFixed(2)}" y="${height - bottom + 20}" text-anchor="middle">${svgEscape(shortLabel(item.label, 15))}</text></g>`;
+  });
+  content += '</g>';
+  renderSvg(element, content);
+}
+
+function drawBars(canvas, items, { horizontal = true, color = COLORS[0], maxItems = 10, decimals = false, formatValue = null } = {}) {
+  if (canvas && canvas.tagName && canvas.tagName.toLowerCase() !== 'canvas') {
+    drawSvgBars(canvas, items, { horizontal, color, maxItems, decimals, formatValue });
+    return;
+  }
   const { ctx, width, height } = setupCanvas(canvas);
   const data = items.slice(0, maxItems);
   if (!data.length) { attachTooltip(canvas, []); return; }
@@ -269,7 +390,7 @@ function drawBars(canvas, items, { horizontal = true, color = COLORS[0], maxItem
     if (horizontal) {
       const y = 18 + index * (plotHeight / data.length) + 3;
       const barWidth = Math.max(2, (item.value / max) * plotWidth);
-      const valueLabel = decimals ? formatDecimal(item.value) : formatNumber(item.value);
+      const valueLabel = formatValue ? formatValue(item.value) : (decimals ? formatDecimal(item.value) : formatNumber(item.value));
       ctx.fillStyle = '#e8eee9'; ctx.fillRect(left, y, plotWidth, 16);
       ctx.fillStyle = Array.isArray(color) ? color[index % color.length] : color;
       ctx.fillRect(left, y, barWidth, 16);
@@ -286,7 +407,7 @@ function drawBars(canvas, items, { horizontal = true, color = COLORS[0], maxItem
       const barWidth = plotWidth / data.length;
       const barHeight = (item.value / max) * plotHeight;
       const x = left + index * barWidth + 5;
-      const valueLabel = decimals ? formatDecimal(item.value) : formatNumber(item.value);
+      const valueLabel = formatValue ? formatValue(item.value) : (decimals ? formatDecimal(item.value) : formatNumber(item.value));
       ctx.fillStyle = Array.isArray(color) ? color[index % color.length] : color;
       ctx.fillRect(x, height - bottom - barHeight, Math.max(8, barWidth - 10), barHeight);
       ctx.fillStyle = '#53635d'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
@@ -299,7 +420,11 @@ function drawBars(canvas, items, { horizontal = true, color = COLORS[0], maxItem
   attachTooltip(canvas, regions);
 }
 
-function drawLine(canvas, items, { color = COLORS[0], decimals = false } = {}) {
+function drawLine(canvas, items, { color = COLORS[0], decimals = false, formatValue = null } = {}) {
+  if (canvas && canvas.tagName && canvas.tagName.toLowerCase() !== 'canvas') {
+    drawSvgLine(canvas, items, { color, decimals, formatValue });
+    return;
+  }
   const { ctx, width, height } = setupCanvas(canvas);
   const data = items;
   if (!data.length) { attachTooltip(canvas, []); return; }
@@ -312,7 +437,7 @@ function drawLine(canvas, items, { color = COLORS[0], decimals = false } = {}) {
     const y = top + plotHeight * (1 - fraction);
     ctx.beginPath(); ctx.moveTo(left, y); ctx.lineTo(width - right, y); ctx.stroke();
     ctx.fillStyle = '#7a8982'; ctx.font = '11px system-ui'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
-    ctx.fillText(decimals ? formatDecimal(max * fraction) : formatNumber(max * fraction), left - 7, y);
+    ctx.fillText(formatValue ? formatValue(max * fraction) : (decimals ? formatDecimal(max * fraction) : formatNumber(max * fraction)), left - 7, y);
   });
   ctx.strokeStyle = color; ctx.lineWidth = 3; ctx.beginPath();
   data.forEach((item, index) => {
@@ -326,7 +451,7 @@ function drawLine(canvas, items, { color = COLORS[0], decimals = false } = {}) {
     const y = top + plotHeight * (1 - item.value / max);
     ctx.fillStyle = color; ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#53635d'; ctx.font = '11px system-ui'; ctx.textAlign = 'center'; ctx.textBaseline = 'top'; ctx.fillText(item.label, x, height - bottom + 12);
-    regions.push({ type: 'point', x, y, label: item.label, value: item.value, valueLabel: decimals ? formatDecimal(item.value) : formatNumber(item.value) });
+    regions.push({ type: 'point', x, y, label: item.label, value: item.value, valueLabel: formatValue ? formatValue(item.value) : (decimals ? formatDecimal(item.value) : formatNumber(item.value)) });
   });
   attachTooltip(canvas, regions);
 }
@@ -351,9 +476,9 @@ function drawPitchHeatmap(canvas, items) {
   ctx.fillStyle = 'rgba(255,255,255,.75)'; ctx.font = '11px system-ui'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
   ctx.fillText('goal location · attacking direction →', width / 2, height - 20);
   items.forEach((item, index) => {
-    const x = pitch.x + item.x * pitch.width;
-    const y = pitch.y + item.y * pitch.height;
-    const radius = 7 + Math.sqrt(item.value / max) * 22;
+    const radius = 6 + Math.sqrt(item.value / max) * 17;
+    const x = Math.min(pitch.x + pitch.width - radius - 2, Math.max(pitch.x + radius + 2, pitch.x + item.x * pitch.width));
+    const y = Math.min(pitch.y + pitch.height - radius - 2, Math.max(pitch.y + radius + 2, pitch.y + item.y * pitch.height));
     ctx.fillStyle = index === 0 ? '#ffd36b' : '#f6a65d';
     ctx.globalAlpha = .28; ctx.beginPath(); ctx.arc(x, y, radius + 7, 0, Math.PI * 2); ctx.fill();
     ctx.globalAlpha = .95; ctx.beginPath(); ctx.arc(x, y, radius, 0, Math.PI * 2); ctx.fill();
@@ -460,8 +585,9 @@ function renderDashboard(rows) {
   setText('dash-metric-label', `${metricLabel} total`);
   setText('dash-current-label', `${metricLabel} by ${breakdown}`);
   const breakdownData = aggregateMetric(filtered, breakdown, metric);
-  drawBars(document.getElementById('dash-breakdown-chart'), breakdownData, { color: COLORS, maxItems: 12 });
-  drawLine(document.getElementById('dash-season-chart'), bySeason(filtered, metric), { color: COLORS[1] });
+  const selectedMeasureFormat = (value) => metricFormat(metric, value);
+  drawBars(document.getElementById('dash-breakdown-chart'), breakdownData, { color: COLORS, maxItems: 12, formatValue: selectedMeasureFormat });
+  drawLine(document.getElementById('dash-season-chart'), bySeason(filtered, metric), { color: COLORS[1], formatValue: selectedMeasureFormat });
   drawBars(document.getElementById('dash-goals-chart'), groupSum(filtered, 'league', 'goals'), { horizontal: false, color: COLORS[2], maxItems: 5 });
   drawBars(document.getElementById('dash-discipline-chart'), groupSum(filtered, 'league', 'yellow_cards'), { horizontal: false, color: COLORS[4], maxItems: 5 });
   drawBars(document.getElementById('dash-method-chart'), methodTotals(filtered, methodGroup), { horizontal: false, color: COLORS, maxItems: 5 });

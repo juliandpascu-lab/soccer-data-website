@@ -70,6 +70,22 @@ h3 { margin: 0; font-size: 1rem; }
 .finding strong { color: var(--ink); }
 .chart-card { min-height: 278px; overflow: hidden; padding: 16px; background: var(--card); border: 1px solid var(--line); border-top: 3px solid var(--green); border-radius: 18px; box-shadow: var(--shadow); }
 .chart-card canvas { display: block; width: 100%; height: 255px; }
+.chart-plot { display: block; width: 100%; height: 255px; overflow: hidden; }
+.svg-chart { display: block; width: 100%; height: 100%; overflow: visible; }
+.svg-rule { stroke: #dbe5df; stroke-width: 1; }
+.svg-track { fill: #e8eee9; }
+.svg-bar { transition: filter .16s ease, opacity .16s ease; }
+.svg-mark { outline: none; }
+.svg-mark:hover .svg-bar, .svg-mark:focus .svg-bar { filter: brightness(.88) saturate(1.15); }
+.svg-mark:hover .svg-point, .svg-mark:focus .svg-point { stroke: #ffd36b; stroke-width: 4; }
+.svg-label { fill: #53635d; font: 12px Inter, ui-sans-serif, system-ui, sans-serif; }
+.svg-x-label { font-size: 11px; }
+.svg-value { fill: #10221d; font: 700 12px Inter, ui-sans-serif, system-ui, sans-serif; }
+.svg-value-inside { fill: #fff; }
+.svg-axis { fill: #7a8982; font: 11px Inter, ui-sans-serif, system-ui, sans-serif; }
+.svg-line { stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.svg-point { transition: stroke-width .16s ease; }
+.svg-empty { fill: #64736d; font: 13px Inter, ui-sans-serif, system-ui, sans-serif; }
 .chart-note { margin: 12px 0 0; color: var(--muted); font-size: .78rem; }
 
 .method-card { margin: 28px 0 66px; padding: 25px; background: #e7f1e8; border-radius: 22px; }
