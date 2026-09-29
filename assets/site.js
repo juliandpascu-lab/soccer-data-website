@@ -9,6 +9,13 @@ const NUMERIC_FIELDS = [
   'goal_right_foot', 'goal_left_foot', 'goal_head', 'goal_open_play', 'goal_set_piece',
   'goal_corner', 'goal_free_kick', 'goal_no_assist', 'goal_assisted_by_pass',
   'goal_assisted_by_cross', 'goal_assisted_by_headed_pass', 'goal_assisted_by_through_ball',
+  'finishing_rate', 'on_target_rate',
+  'goal_location_attacking_half', 'goal_location_defensive_half', 'goal_location_centre_box',
+  'goal_location_left_wing', 'goal_location_right_wing', 'goal_location_difficult_long_range',
+  'goal_location_difficult_left', 'goal_location_difficult_right', 'goal_location_left_box',
+  'goal_location_left_six', 'goal_location_right_box', 'goal_location_right_six',
+  'goal_location_very_close', 'goal_location_penalty_spot', 'goal_location_outside_box',
+  'goal_location_long_range', 'goal_location_over_35', 'goal_location_over_40', 'goal_location_not_recorded',
 ];
 
 const METRICS = {
@@ -20,7 +27,32 @@ const METRICS = {
   key_passes: { label: 'Key passes', format: formatNumber },
   yellow_cards: { label: 'Yellow cards', format: formatNumber },
   event_count: { label: 'Recorded events', format: formatNumber },
+  finishing_rate: { label: 'Finishing rate', format: formatPercent, rate: true },
+  on_target_rate: { label: 'On-target rate', format: formatPercent, rate: true },
+  goals_per_event_match: { label: 'Goals per event match', format: formatDecimal, rate: true },
 };
+
+const LOCATION_FIELDS = [
+  { field: 'goal_location_attacking_half', label: 'Attacking half', x: .37, y: .50 },
+  { field: 'goal_location_defensive_half', label: 'Defensive half', x: .18, y: .50 },
+  { field: 'goal_location_centre_box', label: 'Centre of the box', x: .79, y: .50 },
+  { field: 'goal_location_left_wing', label: 'Left wing', x: .64, y: .18 },
+  { field: 'goal_location_right_wing', label: 'Right wing', x: .64, y: .82 },
+  { field: 'goal_location_difficult_long_range', label: 'Difficult angle / long range', x: .52, y: .50 },
+  { field: 'goal_location_difficult_left', label: 'Difficult angle left', x: .69, y: .28 },
+  { field: 'goal_location_difficult_right', label: 'Difficult angle right', x: .69, y: .72 },
+  { field: 'goal_location_left_box', label: 'Left side of the box', x: .78, y: .28 },
+  { field: 'goal_location_left_six', label: 'Left side of six-yard box', x: .91, y: .34 },
+  { field: 'goal_location_right_box', label: 'Right side of the box', x: .78, y: .72 },
+  { field: 'goal_location_right_six', label: 'Right side of six-yard box', x: .91, y: .66 },
+  { field: 'goal_location_very_close', label: 'Very close range', x: .96, y: .50 },
+  { field: 'goal_location_penalty_spot', label: 'Penalty spot', x: .86, y: .50 },
+  { field: 'goal_location_outside_box', label: 'Outside the box', x: .66, y: .50 },
+  { field: 'goal_location_long_range', label: 'Long range', x: .46, y: .50 },
+  { field: 'goal_location_over_35', label: 'More than 35 yards', x: .30, y: .50 },
+  { field: 'goal_location_over_40', label: 'More than 40 yards', x: .20, y: .50 },
+  { field: 'goal_location_not_recorded', label: 'Not recorded', x: .08, y: .90 },
+];
 
 const METHOD_GROUPS = {
   bodypart: [
@@ -51,6 +83,10 @@ function formatDecimal(value) {
   return Number(value || 0).toLocaleString('en-US', { maximumFractionDigits: 2 });
 }
 
+function formatPercent(value) {
+  return `${(Number(value || 0) * 100).toLocaleString('en-US', { maximumFractionDigits: 1 })}%`;
+}
+
 function parseCSV(text) {
   const rows = [];
   let row = [];
@@ -77,7 +113,7 @@ function parseCSV(text) {
     const record = {};
     headers.forEach((header, index) => {
       const raw = (cells[index] ?? '').trim();
-      record[header] = NUMERIC_FIELDS.includes(header) ? Number(raw || 0) : raw;
+      record[header] = NUMERIC_FIELDS.includes(header) ? (raw === '' ? null : Number(raw)) : raw;
     });
     return record;
   });
@@ -103,12 +139,39 @@ function groupAverage(rows, key, metric) {
   const grouped = new Map();
   rows.forEach((row) => {
     const name = row[key] || 'Unknown';
+    if (row[metric] === null || row[metric] === undefined || row[metric] === '') return;
     if (!grouped.has(name)) grouped.set(name, []);
     grouped.get(name).push(Number(row[metric] || 0));
   });
   return [...grouped.entries()].map(([label, values]) => ({
     label, value: values.reduce((a, b) => a + b, 0) / values.length,
   })).sort((a, b) => b.value - a.value);
+}
+
+function isRateMetric(metric) {
+  return Boolean(METRICS[metric]?.rate) || metric === 'goals_per_event_match';
+}
+
+function aggregateMetric(rows, key, metric) {
+  return isRateMetric(metric) ? groupAverage(rows, key, metric) : groupSum(rows, key, metric);
+}
+
+function metricValue(rows, metric) {
+  if (!rows.length) return 0;
+  if (!isRateMetric(metric)) return sum(rows, metric);
+  const values = rows.map((row) => row[metric]).filter((value) => value !== null && value !== undefined && value !== '').map(Number);
+  return values.length ? values.reduce((total, value) => total + value, 0) / values.length : 0;
+}
+
+function metricFormat(metric, value) {
+  return METRICS[metric]?.format ? METRICS[metric].format(value) : formatNumber(value);
+}
+
+function locationTotals(rows) {
+  return LOCATION_FIELDS.map((location) => ({
+    ...location,
+    value: sum(rows, location.field),
+  })).filter((location) => location.value > 0).sort((a, b) => b.value - a.value);
 }
 
 function shortLabel(label, max = 19) {
@@ -128,10 +191,44 @@ function setupCanvas(canvas) {
   return { ctx, width, height };
 }
 
+function attachTooltip(canvas, regions) {
+  canvas._chartRegions = regions;
+  canvas.classList.add('interactive-chart');
+  if (canvas._tooltipReady) return;
+  canvas._tooltipReady = true;
+  canvas.addEventListener('mousemove', (event) => {
+    const rect = canvas.getBoundingClientRect();
+    const x = (event.clientX - rect.left) * (canvas.clientWidth / rect.width);
+    const y = (event.clientY - rect.top) * (canvas.clientHeight / rect.height);
+    const region = (canvas._chartRegions || []).find((item) => {
+      if (item.type === 'point') return Math.hypot(item.x - x, item.y - y) < 14;
+      return x >= item.x && x <= item.x + item.width && y >= item.y && y <= item.y + item.height;
+    });
+    let tooltip = document.querySelector('.chart-tooltip');
+    if (!tooltip) {
+      tooltip = document.createElement('div');
+      tooltip.className = 'chart-tooltip';
+      document.body.appendChild(tooltip);
+    }
+    if (!region) { tooltip.classList.remove('visible'); canvas.style.cursor = 'default'; return; }
+    tooltip.innerHTML = `<strong>${escapeHtml(region.label)}</strong><span>${region.valueLabel || formatNumber(region.value)}</span>`;
+    tooltip.style.left = `${event.clientX + 14}px`;
+    tooltip.style.top = `${event.clientY + 14}px`;
+    tooltip.classList.add('visible');
+    canvas.style.cursor = 'crosshair';
+  });
+  canvas.addEventListener('mouseleave', () => {
+    const tooltip = document.querySelector('.chart-tooltip');
+    if (tooltip) tooltip.classList.remove('visible');
+    canvas.style.cursor = 'default';
+  });
+}
+
 function drawBars(canvas, items, { horizontal = true, color = COLORS[0], maxItems = 10, decimals = false } = {}) {
   const { ctx, width, height } = setupCanvas(canvas);
   const data = items.slice(0, maxItems);
-  if (!data.length) return;
+  if (!data.length) { attachTooltip(canvas, []); return; }
+  const regions = [];
   const left = horizontal ? Math.min(138, width * .37) : 42;
   const bottom = horizontal ? 18 : 46;
   const plotWidth = width - left - 18;
@@ -148,6 +245,7 @@ function drawBars(canvas, items, { horizontal = true, color = COLORS[0], maxItem
       ctx.fillRect(left, y, barWidth, 16);
       ctx.fillStyle = '#53635d'; ctx.textAlign = 'right'; ctx.fillText(shortLabel(item.label), left - 8, y + 8);
       ctx.fillStyle = '#10221d'; ctx.textAlign = 'left'; ctx.fillText(decimals ? formatDecimal(item.value) : formatNumber(item.value), left + barWidth + 7, y + 8);
+      regions.push({ x: left, y, width: plotWidth, height: 16, label: item.label, value: item.value, valueLabel: decimals ? formatDecimal(item.value) : formatNumber(item.value) });
     } else {
       const barWidth = plotWidth / data.length;
       const barHeight = (item.value / max) * plotHeight;
@@ -158,17 +256,20 @@ function drawBars(canvas, items, { horizontal = true, color = COLORS[0], maxItem
       ctx.fillText(shortLabel(item.label, 13), x + (barWidth - 10) / 2, height - bottom + 9);
       ctx.fillStyle = '#10221d'; ctx.textBaseline = 'bottom';
       ctx.fillText(decimals ? formatDecimal(item.value) : formatNumber(item.value), x + (barWidth - 10) / 2, height - bottom - barHeight - 6);
+      regions.push({ x, y: height - bottom - barHeight, width: Math.max(8, barWidth - 10), height: Math.max(barHeight, 10), label: item.label, value: item.value, valueLabel: decimals ? formatDecimal(item.value) : formatNumber(item.value) });
     }
   });
+  attachTooltip(canvas, regions);
 }
 
 function drawLine(canvas, items, { color = COLORS[0], decimals = false } = {}) {
   const { ctx, width, height } = setupCanvas(canvas);
   const data = items;
-  if (!data.length) return;
+  if (!data.length) { attachTooltip(canvas, []); return; }
   const left = 44; const right = 18; const top = 18; const bottom = 42;
   const plotWidth = width - left - right; const plotHeight = height - top - bottom;
   const max = Math.max(...data.map((item) => item.value), 1);
+  const regions = [];
   ctx.strokeStyle = '#dbe5df'; ctx.lineWidth = 1;
   [0, .5, 1].forEach((fraction) => {
     const y = top + plotHeight * (1 - fraction);
@@ -188,11 +289,45 @@ function drawLine(canvas, items, { color = COLORS[0], decimals = false } = {}) {
     const y = top + plotHeight * (1 - item.value / max);
     ctx.fillStyle = color; ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#53635d'; ctx.font = '11px system-ui'; ctx.textAlign = 'center'; ctx.textBaseline = 'top'; ctx.fillText(item.label, x, height - bottom + 12);
+    regions.push({ type: 'point', x, y, label: item.label, value: item.value, valueLabel: decimals ? formatDecimal(item.value) : formatNumber(item.value) });
   });
+  attachTooltip(canvas, regions);
+}
+
+function drawPitchHeatmap(canvas, items) {
+  const { ctx, width, height } = setupCanvas(canvas);
+  const pitch = { x: 18, y: 20, width: width - 36, height: height - 50 };
+  const max = Math.max(...items.map((item) => item.value), 1);
+  const regions = [];
+  ctx.fillStyle = '#2a7655';
+  ctx.fillRect(pitch.x, pitch.y, pitch.width, pitch.height);
+  ctx.fillStyle = 'rgba(255,255,255,.055)';
+  for (let index = 0; index < 10; index += 1) {
+    if (index % 2 === 0) ctx.fillRect(pitch.x + index * pitch.width / 10, pitch.y, pitch.width / 10, pitch.height);
+  }
+  ctx.strokeStyle = 'rgba(255,255,255,.75)'; ctx.lineWidth = 1.2;
+  ctx.strokeRect(pitch.x, pitch.y, pitch.width, pitch.height);
+  ctx.beginPath(); ctx.moveTo(pitch.x + pitch.width / 2, pitch.y); ctx.lineTo(pitch.x + pitch.width / 2, pitch.y + pitch.height); ctx.stroke();
+  ctx.beginPath(); ctx.arc(pitch.x + pitch.width / 2, pitch.y + pitch.height / 2, pitch.height * .16, 0, Math.PI * 2); ctx.stroke();
+  ctx.strokeRect(pitch.x + pitch.width * .74, pitch.y + pitch.height * .18, pitch.width * .22, pitch.height * .64);
+  ctx.strokeRect(pitch.x + pitch.width * .88, pitch.y + pitch.height * .34, pitch.width * .08, pitch.height * .32);
+  ctx.fillStyle = 'rgba(255,255,255,.75)'; ctx.font = '11px system-ui'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  ctx.fillText('goal location · attacking direction →', width / 2, height - 20);
+  items.forEach((item, index) => {
+    const x = pitch.x + item.x * pitch.width;
+    const y = pitch.y + item.y * pitch.height;
+    const radius = 7 + Math.sqrt(item.value / max) * 22;
+    ctx.fillStyle = index === 0 ? '#ffd36b' : '#f6a65d';
+    ctx.globalAlpha = .28; ctx.beginPath(); ctx.arc(x, y, radius + 7, 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha = .95; ctx.beginPath(); ctx.arc(x, y, radius, 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha = 1;
+    regions.push({ type: 'point', x, y, label: item.label, value: item.value, valueLabel: `${formatNumber(item.value)} goals` });
+  });
+  attachTooltip(canvas, regions);
 }
 
 function bySeason(rows, metric) {
-  return groupSum(rows, 'season', metric).sort((a, b) => Number(a.label) - Number(b.label));
+  return aggregateMetric(rows, 'season', metric).sort((a, b) => Number(a.label) - Number(b.label));
 }
 
 function methodTotals(rows, group) {
@@ -237,6 +372,9 @@ async function initReport() {
   const topMethod = methodTotals(rows, 'bodypart')[0];
   setText('top-method', topMethod?.label || '—');
   setText('top-method-goals', formatNumber(topMethod?.value));
+  const topLocation = locationTotals(rows)[0];
+  setText('top-location', topLocation?.label || '—');
+  setText('top-location-goals', formatNumber(topLocation?.value));
   const topCards = groupSum(rows, 'player', 'yellow_cards');
   setText('top-card-player', topCards[0]?.label || '—');
   setText('top-card-value', formatNumber(topCards[0]?.value));
@@ -249,6 +387,7 @@ async function initReport() {
   reportChart('chart-league-goals', rows, 'league', 'goals', { horizontal: false, color: COLORS, maxItems: 5 });
   reportChart('chart-contributions', rows, 'player', 'goal_contributions', { color: COLORS[2], maxItems: 10 });
   drawBars(document.getElementById('chart-methods'), methodTotals(rows, 'bodypart'), { horizontal: false, color: COLORS, maxItems: 3 });
+  drawPitchHeatmap(document.getElementById('chart-location'), locationTotals(rows));
   reportChart('chart-cards', rows, 'player', 'yellow_cards', { color: COLORS[4], maxItems: 10 });
   reportChart('chart-teams', rows, 'team', 'goals', { color: COLORS, maxItems: 10 });
   reportChart('chart-efficiency', rows, 'league', 'goals_per_event_match', { horizontal: false, color: COLORS[6], maxItems: 5, decimals: true, average: true });
@@ -273,19 +412,20 @@ function renderDashboard(rows) {
   const breakdown = document.getElementById('breakdown').value;
   const methodGroup = document.getElementById('method-group').value;
   const metricLabel = METRICS[metric].label;
-  const metricTotal = sum(filtered, metric);
+  const metricTotal = metricValue(filtered, metric);
   setText('dash-records', formatNumber(filtered.length));
   setText('dash-players', formatNumber(unique(filtered, 'player')));
-  setText('dash-metric-total', formatNumber(metricTotal));
+  setText('dash-metric-total', metricFormat(metric, metricTotal));
   setText('dash-avg-goals', formatDecimal(filtered.length ? sum(filtered, 'goals') / filtered.length : 0));
   setText('dash-metric-label', `${metricLabel} total`);
   setText('dash-current-label', `${metricLabel} by ${breakdown}`);
-  const breakdownData = groupSum(filtered, breakdown, metric);
+  const breakdownData = aggregateMetric(filtered, breakdown, metric);
   drawBars(document.getElementById('dash-breakdown-chart'), breakdownData, { color: COLORS, maxItems: 12 });
   drawLine(document.getElementById('dash-season-chart'), bySeason(filtered, metric), { color: COLORS[1] });
   drawBars(document.getElementById('dash-goals-chart'), groupSum(filtered, 'league', 'goals'), { horizontal: false, color: COLORS[2], maxItems: 5 });
   drawBars(document.getElementById('dash-discipline-chart'), groupSum(filtered, 'league', 'yellow_cards'), { horizontal: false, color: COLORS[4], maxItems: 5 });
   drawBars(document.getElementById('dash-method-chart'), methodTotals(filtered, methodGroup), { horizontal: false, color: COLORS, maxItems: 5 });
+  drawPitchHeatmap(document.getElementById('dash-location-chart'), locationTotals(filtered));
   renderTable(filtered, metric);
 }
 
@@ -294,9 +434,27 @@ function renderTable(rows, metric) {
   const sorted = [...rows].sort((a, b) => Number(b[metric] || 0) - Number(a[metric] || 0)).slice(0, 40);
   body.innerHTML = sorted.map((row) => `<tr>
     <td>${escapeHtml(row.player)}</td><td>${escapeHtml(row.team)}</td><td>${escapeHtml(row.league)}</td><td>${row.season}</td>
-    <td>${formatNumber(row[metric])}</td><td>${formatNumber(row.goals)}</td><td>${formatNumber(row.assists)}</td><td>${formatNumber(row.matches_with_events)}</td>
+    <td>${metricFormat(metric, row[metric])}</td><td>${formatNumber(row.goals)}</td><td>${formatNumber(row.assists)}</td><td>${formatNumber(row.matches_with_events)}</td>
   </tr>`).join('');
   if (!sorted.length) body.innerHTML = '<tr><td colspan="8" class="empty">No records match these filters.</td></tr>';
+}
+
+function setupScrollReveal() {
+  const elements = document.querySelectorAll('.report-section, .method-card, .dashboard-card, .dashboard-stats .stat-card');
+  elements.forEach((element) => element.classList.add('reveal'));
+  if (!('IntersectionObserver' in window)) {
+    elements.forEach((element) => element.classList.add('is-visible'));
+    return;
+  }
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: .12 });
+  elements.forEach((element) => observer.observe(element));
 }
 
 async function initDashboard() {
@@ -320,6 +478,7 @@ async function initDashboard() {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
+  setupScrollReveal();
   try {
     if (document.body.dataset.page === 'report') await initReport();
     if (document.body.dataset.page === 'dashboard') await initDashboard();

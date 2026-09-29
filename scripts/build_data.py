@@ -94,7 +94,26 @@ aggregated AS (
         SUM(CASE WHEN is_goal = 1 AND assist_method = 1 THEN 1 ELSE 0 END) AS goal_assisted_by_pass,
         SUM(CASE WHEN is_goal = 1 AND assist_method = 2 THEN 1 ELSE 0 END) AS goal_assisted_by_cross,
         SUM(CASE WHEN is_goal = 1 AND assist_method = 3 THEN 1 ELSE 0 END) AS goal_assisted_by_headed_pass,
-        SUM(CASE WHEN is_goal = 1 AND assist_method = 4 THEN 1 ELSE 0 END) AS goal_assisted_by_through_ball
+        SUM(CASE WHEN is_goal = 1 AND assist_method = 4 THEN 1 ELSE 0 END) AS goal_assisted_by_through_ball,
+        SUM(CASE WHEN is_goal = 1 AND location = 1 THEN 1 ELSE 0 END) AS goal_location_attacking_half,
+        SUM(CASE WHEN is_goal = 1 AND location = 2 THEN 1 ELSE 0 END) AS goal_location_defensive_half,
+        SUM(CASE WHEN is_goal = 1 AND location = 3 THEN 1 ELSE 0 END) AS goal_location_centre_box,
+        SUM(CASE WHEN is_goal = 1 AND location = 4 THEN 1 ELSE 0 END) AS goal_location_left_wing,
+        SUM(CASE WHEN is_goal = 1 AND location = 5 THEN 1 ELSE 0 END) AS goal_location_right_wing,
+        SUM(CASE WHEN is_goal = 1 AND location = 6 THEN 1 ELSE 0 END) AS goal_location_difficult_long_range,
+        SUM(CASE WHEN is_goal = 1 AND location = 7 THEN 1 ELSE 0 END) AS goal_location_difficult_left,
+        SUM(CASE WHEN is_goal = 1 AND location = 8 THEN 1 ELSE 0 END) AS goal_location_difficult_right,
+        SUM(CASE WHEN is_goal = 1 AND location = 9 THEN 1 ELSE 0 END) AS goal_location_left_box,
+        SUM(CASE WHEN is_goal = 1 AND location = 10 THEN 1 ELSE 0 END) AS goal_location_left_six,
+        SUM(CASE WHEN is_goal = 1 AND location = 11 THEN 1 ELSE 0 END) AS goal_location_right_box,
+        SUM(CASE WHEN is_goal = 1 AND location = 12 THEN 1 ELSE 0 END) AS goal_location_right_six,
+        SUM(CASE WHEN is_goal = 1 AND location = 13 THEN 1 ELSE 0 END) AS goal_location_very_close,
+        SUM(CASE WHEN is_goal = 1 AND location = 14 THEN 1 ELSE 0 END) AS goal_location_penalty_spot,
+        SUM(CASE WHEN is_goal = 1 AND location = 15 THEN 1 ELSE 0 END) AS goal_location_outside_box,
+        SUM(CASE WHEN is_goal = 1 AND location = 16 THEN 1 ELSE 0 END) AS goal_location_long_range,
+        SUM(CASE WHEN is_goal = 1 AND location = 17 THEN 1 ELSE 0 END) AS goal_location_over_35,
+        SUM(CASE WHEN is_goal = 1 AND location = 18 THEN 1 ELSE 0 END) AS goal_location_over_40,
+        SUM(CASE WHEN is_goal = 1 AND location = 19 THEN 1 ELSE 0 END) AS goal_location_not_recorded
     FROM joined
     GROUP BY ALL
 )
@@ -124,6 +143,8 @@ SELECT
     penalties_conceded,
     ROUND(goals * 1.0 / NULLIF(matches_with_events, 0), 3) AS goals_per_event_match,
     goals + assists AS goal_contributions,
+    ROUND(goals * 1.0 / NULLIF(attempts, 0), 3) AS finishing_rate,
+    ROUND(shots_on_target * 1.0 / NULLIF(attempts, 0), 3) AS on_target_rate,
     goal_right_foot,
     goal_left_foot,
     goal_head,
@@ -135,7 +156,26 @@ SELECT
     goal_assisted_by_pass,
     goal_assisted_by_cross,
     goal_assisted_by_headed_pass,
-    goal_assisted_by_through_ball
+    goal_assisted_by_through_ball,
+    goal_location_attacking_half,
+    goal_location_defensive_half,
+    goal_location_centre_box,
+    goal_location_left_wing,
+    goal_location_right_wing,
+    goal_location_difficult_long_range,
+    goal_location_difficult_left,
+    goal_location_difficult_right,
+    goal_location_left_box,
+    goal_location_left_six,
+    goal_location_right_box,
+    goal_location_right_six,
+    goal_location_very_close,
+    goal_location_penalty_spot,
+    goal_location_outside_box,
+    goal_location_long_range,
+    goal_location_over_35,
+    goal_location_over_40,
+    goal_location_not_recorded
 FROM aggregated
 ORDER BY season, league, team, goals DESC, player
 """

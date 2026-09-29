@@ -32,7 +32,7 @@
     </section>
 
     <section class="toolbar" aria-label="Chart switches">
-      <div class="control"><label for="measure">Measure shown</label><select id="measure"><option value="goals">Goals</option><option value="assists">Assists</option><option value="goal_contributions">Goal contributions</option><option value="attempts">Shot attempts</option><option value="shots_on_target">Shots on target</option><option value="key_passes">Key passes</option><option value="yellow_cards">Yellow cards</option><option value="event_count">Recorded events</option></select></div>
+      <div class="control"><label for="measure">Measure shown</label><select id="measure"><option value="goals">Goals</option><option value="assists">Assists</option><option value="goal_contributions">Goal contributions</option><option value="attempts">Shot attempts</option><option value="shots_on_target">Shots on target</option><option value="key_passes">Key passes</option><option value="yellow_cards">Yellow cards</option><option value="event_count">Recorded events</option><option value="finishing_rate">Finishing rate</option><option value="on_target_rate">On-target rate</option><option value="goals_per_event_match">Goals per event match</option></select></div>
       <div class="control"><label for="breakdown">Break chart down by</label><select id="breakdown"><option value="player">Player</option><option value="team">Team</option><option value="league">League</option><option value="country">Country</option><option value="season">Season</option></select></div>
       <div class="control"><label for="method-group">Goal method view</label><select id="method-group"><option value="bodypart">Body part</option><option value="situation">Scoring situation</option><option value="assist_method">Assist method</option></select></div>
       <button id="reset-filters" type="button">Reset all filters</button>
@@ -51,6 +51,7 @@
       <article class="dashboard-card"><h3>Goals by league</h3><canvas id="dash-goals-chart"></canvas></article>
       <article class="dashboard-card"><h3>Yellow cards by league</h3><canvas id="dash-discipline-chart"></canvas></article>
       <article class="dashboard-card"><h3>Goals by selected method</h3><canvas id="dash-method-chart"></canvas></article>
+      <article class="dashboard-card pitch-card"><h3>Goal locations</h3><canvas id="dash-location-chart"></canvas></article>
     </section>
 
     <section>

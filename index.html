@@ -67,7 +67,12 @@
       </section>
 
       <section class="report-section">
-        <div><div class="section-number">08 / RATE</div><h2>Rates add context to raw totals.</h2><p class="finding">The final chart averages each player-season record’s goals per match with a recorded event for the league. This is a lightweight rate, designed to make unequal row counts easier to compare.</p><p class="finding">Use rates carefully: the event data does not include a complete official minutes-played or appearance field. The dashboard exposes totals alongside the rate so the denominator stays visible.</p></div>
+        <div><div class="section-number">08 / GOAL LOCATION</div><h2>Goals cluster around the central scoring zones.</h2><p class="finding"><strong id="top-location">—</strong> is the most common recorded location with <strong id="top-location-goals">—</strong> goals. The pitch view turns the dictionary’s location codes into a spatial summary.</p><p class="finding">These are coded zones, not exact shot coordinates. Hover over each glowing zone to see the count behind it.</p></div>
+        <div class="chart-card pitch-card"><canvas id="chart-location"></canvas><p class="chart-note">Goal locations are approximate zones from the source codebook, not stadium locations.</p></div>
+      </section>
+
+      <section class="report-section">
+        <div><div class="section-number">09 / RATE</div><h2>Rates add context to raw totals.</h2><p class="finding">The final chart averages each player-season record’s goals per match with a recorded event for the league. This is a lightweight rate, designed to make unequal row counts easier to compare.</p><p class="finding">The dashboard also includes finishing rate and on-target rate. Use rates carefully: the event data does not include a complete official minutes-played or appearance field.</p></div>
         <div class="chart-card"><canvas id="chart-efficiency"></canvas><p class="chart-note">Average recorded goals per event-bearing match by league.</p></div>
       </section>
 
