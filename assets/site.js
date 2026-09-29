@@ -66,6 +66,44 @@ const LEAGUE_NAMES = {
   SP1: 'La Liga',
 };
 
+// Public badge assets are stored locally as visual identifiers; the underlying
+// statistics still come exclusively from the project CSV.
+const LEAGUE_BADGES = {
+  D1: 'assets/badges/league-bundesliga.png',
+  E0: 'assets/badges/league-premier-league.png',
+  F1: 'assets/badges/league-ligue-1.png',
+  I1: 'assets/badges/league-serie-a.png',
+  SP1: 'assets/badges/league-la-liga.png',
+};
+
+const CLUB_BADGES = {
+  Barcelona: ['assets/badges/club-barcelona.png', 'FCB'],
+  'Real Madrid': ['assets/badges/club-real-madrid.png', 'RMA'],
+  'Bayern Munich': ['assets/badges/club-bayern-munich.png', 'BAY'],
+  'Paris Saint-Germain': ['assets/badges/club-psg.png', 'PSG'],
+  Napoli: ['assets/badges/club-napoli.png', 'NAP'],
+  Juventus: ['assets/badges/club-juventus.png', 'JUV'],
+  'Borussia Dortmund': ['assets/badges/club-borussia-dortmund.png', 'BVB'],
+  'AS Roma': ['assets/badges/club-as-roma.png', 'ROM'],
+  Lyon: ['assets/badges/club-lyon.png', 'LYO'],
+  'Atletico Madrid': ['assets/badges/club-atletico-madrid.png', 'ATM'],
+  Sevilla: ['assets/badges/club-sevilla.png', 'SEV'],
+  'AC Milan': ['assets/badges/club-ac-milan.png', 'ACM'],
+  Fiorentina: ['assets/badges/club-fiorentina.png', 'FIO'],
+  Valencia: ['assets/badges/club-valencia.png', 'VAL'],
+  Internazionale: ['assets/badges/club-internazionale.png', 'INT'],
+  Lazio: ['assets/badges/club-lazio.png', 'LAZ'],
+  'Bayer Leverkusen': ['assets/badges/club-bayer-leverkusen.png', 'B04'],
+  'Schalke 04': ['assets/badges/club-schalke-04.png', 'S04'],
+  Montpellier: ['assets/badges/club-montpellier.png', 'MHS'],
+  'Real Sociedad': ['assets/badges/club-real-sociedad.png', 'RSO'],
+  'Manchester City': ['assets/badges/club-manchester-city.png', 'MCI'],
+  Marseille: ['assets/badges/club-marseille.png', 'OM'],
+  'VfL Wolfsburg': ['assets/badges/club-wolfsburg.png', 'WOB'],
+  'Borussia Monchengladbach': ['assets/badges/club-borussia-monchengladbach.png', 'BMG'],
+  Lille: ['assets/badges/club-lille.png', 'LOSC'],
+};
+
 const METHOD_GROUPS = {
   bodypart: [
     { field: 'goal_right_foot', label: 'Right foot' },
@@ -164,6 +202,68 @@ function groupSum(rows, key, metric) {
   });
   return [...grouped.entries()].map(([label, value]) => ({ label: displayCategory(key, label), value })).sort((a, b) => b.value - a.value);
 }
+
+function rawGroupSum(rows, key, metric) {
+  const grouped = new Map();
+  rows.forEach((row) => {
+    const name = row[key] || 'Unknown';
+    grouped.set(name, (grouped.get(name) || 0) + Number(row[metric] || 0));
+  });
+  return [...grouped.entries()].map(([keyValue, value]) => ({
+    key: keyValue,
+    label: displayCategory(key, keyValue),
+    value,
+  })).sort((a, b) => b.value - a.value);
+}
+
+function identityBadge(src, initials, label, className = '') {
+  const safeSrc = escapeHtml(src || '');
+  const safeInitials = escapeHtml(initials || String(label || '?').slice(0, 3).toUpperCase());
+  return `<span class="identity-badge ${className}" title="${escapeHtml(label)}"><span class="identity-fallback">${safeInitials}</span>${src ? `<img src="${safeSrc}" alt="${escapeHtml(label)} crest" loading="lazy" onerror="this.style.display='none'">` : ''}</span>`;
+}
+
+function leagueBadgeMarkup(code) {
+  return identityBadge(LEAGUE_BADGES[code], code, LEAGUE_NAMES[code] || code, 'league-badge');
+}
+
+function teamBadgeMarkup(team) {
+  const badge = CLUB_BADGES[team];
+  return identityBadge(badge?.[0], badge?.[1], team, 'club-badge');
+}
+
+function renderLeagueBadges(rows) {
+  const container = document.getElementById('league-badges');
+  if (!container) return;
+  const entries = rawGroupSum(rows, 'league', 'goals');
+  container.innerHTML = entries.map((entry) => `<article class="identity-tile"><div>${leagueBadgeMarkup(entry.key)}</div><strong>${escapeHtml(entry.label)}</strong><span>${formatNumber(entry.value)} goals</span></article>`).join('');
+}
+
+function renderClubBadges(rows) {
+  const container = document.getElementById('club-badges');
+  if (!container) return;
+  const entries = rawGroupSum(rows, 'team', 'goals').slice(0, 10);
+  container.innerHTML = entries.map((entry) => `<article class="identity-tile"><div>${teamBadgeMarkup(entry.key)}</div><strong>${escapeHtml(entry.label)}</strong><span>${formatNumber(entry.value)} goals</span></article>`).join('');
+}
+
+function shirtSvg(number, color, rank) {
+  return `<svg class="goal-shirt" viewBox="0 0 100 112" role="img" aria-label="${escapeHtml(formatNumber(number))} goals" style="--shirt-color:${color}">
+    <path class="shirt-body" d="M29 12 8 24l12 18 10-6v59h40V36l10 6 12-18-21-12-9 12H38z"></path>
+    <path class="shirt-collar" d="M38 12c1 8 5 12 12 12s11-4 12-12l-6-4H44z"></path>
+    <text class="shirt-rank" x="50" y="42" text-anchor="middle">#${rank}</text>
+    <text class="shirt-number" x="50" y="77" text-anchor="middle">${escapeHtml(formatNumber(number))}</text>
+  </svg>`;
+}
+
+function renderScorerShirts(top) {
+  const container = document.getElementById('scorer-shirts');
+  if (!container) return;
+  const shirtColors = ['#116149', '#bd6b36', '#b34e48', '#4a7890', '#6d5c9a', '#7a8d53', '#a76446', '#26735d'];
+  container.innerHTML = top.slice(0, 8).map((entry, index) => `<article class="scorer-shirt-card">
+    ${shirtSvg(entry.value, shirtColors[index % shirtColors.length], index + 1)}
+    <strong>${escapeHtml(entry.label)}</strong><span>${formatNumber(entry.value)} goals</span>
+  </article>`).join('');
+}
+
 function groupAverage(rows, key, metric) {
   const grouped = new Map();
   rows.forEach((row) => {
@@ -543,6 +643,9 @@ async function initReport() {
   setText('top-season', bySeason(rows, 'goals').sort((a, b) => b.value - a.value)[0]?.label || '—');
   setText('top-season-goals', formatNumber(Math.max(...bySeason(rows, 'goals').map((item) => item.value))));
   setText('rows-note', `${formatNumber(rows.length)} player-season-team records were generated from ${formatNumber(unique(rows, 'season'))} seasons of recorded events.`);
+  renderScorerShirts(top);
+  renderLeagueBadges(rows);
+  renderClubBadges(rows);
 
   reportChart('chart-top-scorers', rows, 'player', 'goals', { color: COLORS, maxItems: 10 });
   reportChart('chart-season-goals', rows, 'season', 'goals', { line: true, color: COLORS[1] });
@@ -599,7 +702,7 @@ function renderTable(rows, metric) {
   const body = document.querySelector('#dashboard-table tbody');
   const sorted = [...rows].sort((a, b) => Number(b[metric] || 0) - Number(a[metric] || 0)).slice(0, 40);
   body.innerHTML = sorted.map((row) => `<tr>
-    <td>${escapeHtml(displayName(row.player))}</td><td>${escapeHtml(row.team)}</td><td>${escapeHtml(displayCategory('league', row.league))}</td><td>${row.season}</td>
+    <td>${escapeHtml(displayName(row.player))}</td><td><span class="table-team">${teamBadgeMarkup(row.team)}<span>${escapeHtml(row.team)}</span></span></td><td><span class="table-team">${leagueBadgeMarkup(row.league)}<span>${escapeHtml(displayCategory('league', row.league))}</span></span></td><td>${row.season}</td>
     <td>${metricFormat(metric, row[metric])}</td><td>${formatNumber(row.goals)}</td><td>${formatNumber(row.assists)}</td><td>${formatNumber(row.matches_with_events)}</td>
   </tr>`).join('');
   if (!sorted.length) body.innerHTML = '<tr><td colspan="8" class="empty">No records match these filters.</td></tr>';

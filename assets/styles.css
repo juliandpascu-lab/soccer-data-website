@@ -87,10 +87,29 @@ h3 { margin: 0; font-size: 1rem; }
 .svg-point { transition: stroke-width .16s ease; }
 .svg-empty { fill: #64736d; font: 13px Inter, ui-sans-serif, system-ui, sans-serif; }
 .chart-note { margin: 12px 0 0; color: var(--muted); font-size: .78rem; }
+.identity-rail { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 7px; margin-top: 15px; padding-top: 12px; border-top: 1px solid var(--line); }
+.identity-tile { display: grid; justify-items: center; gap: 5px; min-width: 0; padding: 5px 2px; text-align: center; }
+.identity-tile strong { max-width: 100%; overflow: hidden; color: var(--ink); font-size: .67rem; line-height: 1.15; text-overflow: ellipsis; white-space: nowrap; }
+.identity-tile > span:last-child { color: var(--muted); font-size: .64rem; white-space: nowrap; }
+.identity-badge { position: relative; display: grid; place-items: center; width: 40px; height: 40px; overflow: hidden; border: 1px solid rgba(17, 97, 73, .13); border-radius: 12px; background: linear-gradient(145deg, #f5faf4, #dbeade); box-shadow: 0 5px 12px rgba(16, 34, 29, .08); }
+.identity-badge img { position: absolute; inset: 5px; z-index: 1; width: calc(100% - 10px); height: calc(100% - 10px); object-fit: contain; }
+.identity-fallback { color: var(--green-dark); font-size: .62rem; font-weight: 850; letter-spacing: -.02em; }
+.league-badge { border-radius: 50%; background: white; }
+.scorer-shirts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 15px; padding-top: 13px; border-top: 1px solid var(--line); }
+.scorer-shirt-card { display: grid; justify-items: center; gap: 3px; min-width: 0; text-align: center; }
+.goal-shirt { width: 67px; height: 75px; filter: drop-shadow(0 6px 7px rgba(16, 34, 29, .13)); transition: transform .18s ease, filter .18s ease; }
+.scorer-shirt-card:hover .goal-shirt { transform: translateY(-4px) rotate(-2deg); filter: drop-shadow(0 10px 10px rgba(16, 34, 29, .2)); }
+.shirt-body { fill: var(--shirt-color); stroke: rgba(8, 47, 38, .4); stroke-width: 1.5; }
+.shirt-collar { fill: rgba(255, 255, 255, .22); stroke: rgba(255, 255, 255, .5); stroke-width: 1; }
+.shirt-rank { fill: rgba(255, 255, 255, .76); font: 750 9px Inter, ui-sans-serif, system-ui, sans-serif; }
+.shirt-number { fill: white; font: 850 16px Inter, ui-sans-serif, system-ui, sans-serif; }
+.scorer-shirt-card strong { max-width: 100%; overflow: hidden; font-size: .69rem; text-overflow: ellipsis; white-space: nowrap; }
+.scorer-shirt-card span { color: var(--muted); font-size: .65rem; }
 
 .method-card { margin: 28px 0 66px; padding: 25px; background: #e7f1e8; border-radius: 22px; }
 .method-card p { max-width: 830px; color: #426057; line-height: 1.65; }
 .method-card code { padding: 2px 5px; background: rgba(17, 97, 73, .09); border-radius: 4px; }
+.asset-credit { font-size: .78rem; }
 
 .dashboard-header { position: relative; overflow: hidden; margin-top: 24px; padding: 42px clamp(24px, 4vw, 58px) 28px; color: white; background: linear-gradient(128deg, #082f26 0%, #116149 60%, #247957 100%); border-radius: 24px; box-shadow: 0 22px 48px rgba(11,61,48,.17); }
 .dashboard-header h1 { font-size: clamp(2.5rem, 7vw, 5.8rem); }
@@ -117,6 +136,10 @@ button:hover { background: var(--green-dark); }
 table { width: 100%; border-collapse: collapse; font-size: .88rem; }
 th, td { padding: 12px 14px; border-bottom: 1px solid var(--line); text-align: left; white-space: nowrap; overflow-wrap: anywhere; }
 td:first-child { max-width: 210px; white-space: normal; }
+.table-team { display: inline-flex; align-items: center; gap: 8px; }
+.table-team .identity-badge { width: 27px; height: 27px; border-radius: 8px; box-shadow: none; }
+.table-team .identity-badge img { inset: 3px; width: calc(100% - 6px); height: calc(100% - 6px); }
+.table-team .identity-fallback { font-size: .48rem; }
 th { color: var(--muted); font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; }
 tbody tr:last-child td { border-bottom: 0; }
 tbody tr:hover { background: #f0f7f1; }
@@ -142,4 +165,7 @@ tbody tr:hover { background: #f0f7f1; }
   .hero, .content-shell { width: min(100% - 28px, 1180px); }
   .stat-grid, .controls { grid-template-columns: 1fr; }
   .nav-links { gap: 13px; }
+  .identity-rail { gap: 3px; }
+  .scorer-shirts { gap: 3px; }
+  .goal-shirt { width: 56px; height: 64px; }
 }

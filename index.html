@@ -34,7 +34,7 @@
 
       <section class="report-section">
         <div><div class="section-number">01 / THE LEADERBOARD</div><h2>One scorer sits clearly above the rest.</h2><p class="finding"><strong id="top-scorer">Loading…</strong> leads the player-season records with <strong id="top-scorer-goals">—</strong> goals. The chart ranks the ten strongest scorers after the event log is grouped by player.</p><p class="finding">This is a count of recorded goal events, not a claim about official league-wide appearances. A player can appear more than once in a season if the source records separate club rows.</p></div>
-        <div class="chart-card"><div class="chart-plot" id="chart-top-scorers"></div><p class="chart-note">Total recorded goals by player across the full source window.</p></div>
+        <div class="chart-card"><div class="chart-plot" id="chart-top-scorers"></div><p class="chart-note">Total recorded goals by player across the full source window.</p><div class="scorer-shirts" id="scorer-shirts" aria-label="Top scorer goal shirts"></div></div>
       </section>
 
       <section class="report-section">
@@ -44,7 +44,7 @@
 
       <section class="report-section">
         <div><div class="section-number">03 / LEAGUES</div><h2>The leagues do not contribute equally to the goal total.</h2><p class="finding"><strong id="top-league">—</strong> contributes the largest league total at <strong id="top-league-goals">—</strong> goals. This difference is shaped by league size, season coverage, and the number of recorded events.</p><p class="finding">The codebook uses compact league labels. In the source, they correspond to the five domestic competitions in Germany, England, France, Italy, and Spain.</p></div>
-        <div class="chart-card"><div class="chart-plot" id="chart-league-goals"></div><p class="chart-note">Recorded goals by league code.</p></div>
+        <div class="chart-card"><div class="chart-plot" id="chart-league-goals"></div><p class="chart-note">Recorded goals by league code.</p><div class="identity-rail" id="league-badges" aria-label="League emblems"></div></div>
       </section>
 
       <section class="report-section">
@@ -64,7 +64,7 @@
 
       <section class="report-section">
         <div><div class="section-number">07 / TEAMS</div><h2>Team identity changes the shape of the leaderboard.</h2><p class="finding"><strong id="top-team">—</strong> is the top team in the derived goal total with <strong id="top-team-goals">—</strong> goals. Team totals sum events attributed to that team in the source event file.</p><p class="finding">Because the data is domestic and team-based, this view is especially useful for comparing attacking environments rather than declaring that one player or team is universally best.</p></div>
-        <div class="chart-card"><div class="chart-plot" id="chart-teams"></div><p class="chart-note">Top ten teams by recorded goals.</p></div>
+        <div class="chart-card"><div class="chart-plot" id="chart-teams"></div><p class="chart-note">Top ten teams by recorded goals.</p><div class="identity-rail" id="club-badges" aria-label="Top club emblems"></div></div>
       </section>
 
       <section class="report-section">
@@ -83,6 +83,7 @@
         <p id="rows-note">Loading the derived row count…</p>
         <p>The source match file contributes date, season, league, country, teams, and score. The source event file contributes the player and event measures. We join on <code>id_odsp</code>, remove events with a missing player or missing match join, then group by season, league, country, player, and event team.</p>
         <p>Goals, attempts, shots on target, key passes, corners, fouls, cards, substitutions, offsides, handballs, penalties conceded, and recorded assists are all sums of coded events. Goals per event-bearing match is goals divided by distinct joined match IDs. The source contains domestic leagues only; it does not contain national-team international matches.</p>
+        <p class="asset-credit">League and club badge artwork is loaded as visual reference from <a href="https://www.thesportsdb.com/" target="_blank" rel="noreferrer">TheSportsDB</a> and <a href="https://www.api-football.com/" target="_blank" rel="noreferrer">API-Football media</a>. The goal shirts are original CSS/SVG graphics generated for this project.</p>
         <p><a href="dashboard.html">Explore the same calculations in the interactive dashboard →</a></p>
       </section>
     </section>
