@@ -1326,7 +1326,7 @@ function setupSiteIntro() {
     finish();
     return;
   }
-  intro._introTimer = window.setTimeout(finish, 2400);
+  intro._introTimer = window.setTimeout(finish, 3000);
 }
 
 async function initDashboard() {
