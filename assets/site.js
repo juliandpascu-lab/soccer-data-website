@@ -1324,6 +1324,7 @@ function setupHeroPitch(items) {
 
   const locations = items.length ? items : LOCATION_FIELDS.map((location) => ({ ...location, value: 0 }));
   const totalGoals = locations.reduce((total, item) => total + Number(item.value || 0), 0);
+  const usesBallCursor = typeof window.matchMedia === 'function' && window.matchMedia('(pointer: fine)').matches;
   let position = { x: 50, y: 50 };
   let hasMoved = false;
   let dragging = false;
@@ -1346,9 +1347,10 @@ function setupHeroPitch(items) {
     ball.setAttribute('aria-valuetext', `${selected?.label || 'Pitch zone'}, ${formatNumber(selectedValue)} recorded goals`);
     zone.textContent = selected?.label || 'Pitch zone';
     goals.textContent = formatNumber(selectedValue);
-    status.textContent = hasMoved ? phase : 'READY TO PLAY';
-    prompt.textContent = hasMoved ? `${formatNumber(totalGoals ? (selectedValue / totalGoals) * 100 : 0)}% OF RECORDED GOALS` : 'DRAG TO SCOUT';
+    status.textContent = hasMoved ? phase : usesBallCursor ? 'BALL CURSOR ACTIVE' : 'READY TO PLAY';
+    prompt.textContent = hasMoved ? `${formatNumber(totalGoals ? (selectedValue / totalGoals) * 100 : 0)}% OF RECORDED GOALS` : usesBallCursor ? 'MOVE BALL TO SCOUT' : 'DRAG TO SCOUT';
     pitch.classList.toggle('is-active', hasMoved);
+    pitch.classList.toggle('uses-ball-cursor', usesBallCursor);
   };
 
   const moveFromPointer = (event) => {
@@ -1360,6 +1362,13 @@ function setupHeroPitch(items) {
     hasMoved = true;
     render();
   };
+
+  if (usesBallCursor) {
+    pitch.addEventListener('pointerenter', moveFromPointer);
+    pitch.addEventListener('pointermove', (event) => {
+      if (!dragging) moveFromPointer(event);
+    });
+  }
 
   ball.addEventListener('pointerdown', (event) => {
     event.preventDefault();

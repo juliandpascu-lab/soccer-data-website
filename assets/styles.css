@@ -166,6 +166,11 @@ h3 { margin: 0; font-size: 1rem; }
 .hero-pitch-prompt { position: absolute; bottom: 17px; left: 17px; z-index: 1; color: rgba(255,255,255,.55); font-size: .5rem; font-weight: 900; letter-spacing: .12em; pointer-events: none; transition: color .18s ease; }
 .hero-pitch-guide { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 16px; color: rgba(255,255,255,.48); font-size: .5rem; font-weight: 900; letter-spacing: .13em; }
 .hero-pitch-guide strong { overflow: hidden; color: #ffd36b; font-size: .58rem; text-overflow: ellipsis; white-space: nowrap; }
+@media (pointer: fine) {
+  .hero-pitch-board { cursor: url('balls/fifa-2026-trionda-cursor.png') 48 48, crosshair; }
+  .hero-pitch-board .hero-drag-ball { opacity: 0; pointer-events: none; }
+  .hero-pitch-board:focus-within .hero-drag-ball { opacity: 1; pointer-events: auto; cursor: grab; }
+}
 .hero-topline { max-width: none; margin-top: clamp(30px, 4vw, 48px); }
 .hero-player-card { background: rgba(2,24,18,.54); border-radius: 9px; }
 .hero-player-card:hover, .hero-player-card:focus-visible { box-shadow: 0 10px 24px rgba(1,17,12,.24); }
