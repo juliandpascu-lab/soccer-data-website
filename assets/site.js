@@ -160,6 +160,34 @@ function formatPercent(value) {
   return `${(Number(value || 0) * 100).toLocaleString('en-US', { maximumFractionDigits: 1 })}%`;
 }
 
+function prefersReducedMotion() {
+  return typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+function animateMetric(id, target, formatter = formatNumber, duration = 900) {
+  const element = document.getElementById(id);
+  const numericTarget = Number(target);
+  if (!element || !Number.isFinite(numericTarget)) {
+    if (element) element.textContent = '—';
+    return;
+  }
+  if (element._metricFrame) cancelAnimationFrame(element._metricFrame);
+  const startValue = Number(element.dataset.motionValue || 0);
+  element.dataset.motionValue = String(numericTarget);
+  if (prefersReducedMotion()) {
+    element.textContent = formatter(numericTarget);
+    return;
+  }
+  const startTime = performance.now();
+  const tick = (now) => {
+    const progress = Math.min(1, (now - startTime) / duration);
+    const eased = 1 - ((1 - progress) ** 3);
+    element.textContent = formatter(startValue + ((numericTarget - startValue) * eased));
+    if (progress < 1) element._metricFrame = requestAnimationFrame(tick);
+  };
+  element._metricFrame = requestAnimationFrame(tick);
+}
+
 function displayName(value) {
   const raw = String(value || '').trim();
   const override = NAME_OVERRIDES[raw.toLowerCase()];
@@ -836,30 +864,30 @@ async function initReport() {
   const top = groupSum(rows, 'player', 'goals');
   const topContribution = groupSum(rows, 'player', 'goal_contributions');
   const seasons = [...new Set(rows.map((row) => row.season))].sort((a, b) => a - b);
-  setText('report-rows', formatNumber(rows.length));
-  setText('report-goals', formatNumber(totalGoals));
-  setText('report-players', formatNumber(unique(rows, 'player')));
+  animateMetric('report-rows', rows.length);
+  animateMetric('report-goals', totalGoals);
+  animateMetric('report-players', unique(rows, 'player'));
   setText('report-seasons', `${seasons[0]}–${seasons[seasons.length - 1]}`);
   setText('top-scorer', top[0]?.label || '—');
-  setText('top-scorer-goals', formatNumber(top[0]?.value));
+  animateMetric('top-scorer-goals', top[0]?.value);
   setText('top-team', groupSum(rows, 'team', 'goals')[0]?.label || '—');
-  setText('top-team-goals', formatNumber(groupSum(rows, 'team', 'goals')[0]?.value));
+  animateMetric('top-team-goals', groupSum(rows, 'team', 'goals')[0]?.value);
   const topLeague = rawGroupSum(rows, 'league', 'goals')[0];
   setText('top-league', topLeague?.label || '—');
-  setText('top-league-goals', formatNumber(topLeague?.value));
+  animateMetric('top-league-goals', topLeague?.value);
   setText('top-contributor', topContribution[0]?.label || '—');
-  setText('top-contributor-value', formatNumber(topContribution[0]?.value));
+  animateMetric('top-contributor-value', topContribution[0]?.value);
   const topMethod = methodTotals(rows, 'bodypart')[0];
   setText('top-method', topMethod?.label || '—');
-  setText('top-method-goals', formatNumber(topMethod?.value));
+  animateMetric('top-method-goals', topMethod?.value);
   const topLocation = locationTotals(rows)[0];
   setText('top-location', topLocation?.label || '—');
-  setText('top-location-goals', formatNumber(topLocation?.value));
+  animateMetric('top-location-goals', topLocation?.value);
   const topCards = groupSum(rows, 'player', 'yellow_cards');
   setText('top-card-player', topCards[0]?.label || '—');
-  setText('top-card-value', formatNumber(topCards[0]?.value));
+  animateMetric('top-card-value', topCards[0]?.value);
   setText('top-season', bySeason(rows, 'goals').sort((a, b) => b.value - a.value)[0]?.label || '—');
-  setText('top-season-goals', formatNumber(Math.max(...bySeason(rows, 'goals').map((item) => item.value))));
+  animateMetric('top-season-goals', Math.max(...bySeason(rows, 'goals').map((item) => item.value)));
   setText('rows-note', `${formatNumber(rows.length)} player-season-team records were generated from ${formatNumber(unique(rows, 'season'))} seasons of recorded events.`);
   renderScorerShirts(top, rows);
   renderHeroTopPlayers(top, rows);
@@ -971,10 +999,10 @@ function renderDashboard(rows) {
   const metricTotal = metricValue(filtered, metric);
   updateScopeSummary(filtered);
   updateLeaguePickerState();
-  setText('dash-records', formatNumber(filtered.length));
-  setText('dash-players', formatNumber(unique(filtered, 'player')));
-  setText('dash-metric-total', metricFormat(metric, metricTotal));
-  setText('dash-avg-goals', formatDecimal(filtered.length ? sum(filtered, 'goals') / filtered.length : 0));
+  animateMetric('dash-records', filtered.length);
+  animateMetric('dash-players', unique(filtered, 'player'));
+  animateMetric('dash-metric-total', metricTotal, (value) => metricFormat(metric, value));
+  animateMetric('dash-avg-goals', filtered.length ? sum(filtered, 'goals') / filtered.length : 0, formatDecimal);
   setText('dash-metric-label', `${metricLabel} total`);
   setText('dash-current-label', `${metricLabel} by ${breakdown}`);
   const breakdownData = aggregateMetric(filtered, breakdown, metric);
@@ -1035,6 +1063,19 @@ function setupThemeToggle() {
   });
 }
 
+function setupSiteIntro() {
+  const intro = document.getElementById('site-intro');
+  if (!intro) return;
+  if (prefersReducedMotion()) {
+    intro.remove();
+    return;
+  }
+  window.setTimeout(() => {
+    intro.classList.add('is-complete');
+    window.setTimeout(() => intro.remove(), 550);
+  }, 1250);
+}
+
 async function initDashboard() {
   const rows = await loadRows();
   const values = (field) => [...new Set(rows.map((row) => row[field]).filter(Boolean))].sort((a, b) => String(a).localeCompare(String(b), undefined, { numeric: true }));
@@ -1072,6 +1113,7 @@ async function initDashboard() {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
+  setupSiteIntro();
   setupScrollReveal();
   setupThemeToggle();
   try {
