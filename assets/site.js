@@ -1095,6 +1095,23 @@ function setupThemeToggle() {
   });
 }
 
+function setupStadiumTilt() {
+  const frame = document.getElementById('stadium-3d');
+  const scene = frame?.querySelector('.real-stadium-scene');
+  if (!frame || !scene || prefersReducedMotion()) return;
+  frame.addEventListener('pointermove', (event) => {
+    const bounds = frame.getBoundingClientRect();
+    const x = (event.clientX - bounds.left) / bounds.width - .5;
+    const y = (event.clientY - bounds.top) / bounds.height - .5;
+    scene.style.setProperty('--tilt-x', `${(y * -5).toFixed(2)}deg`);
+    scene.style.setProperty('--tilt-y', `${(x * 6).toFixed(2)}deg`);
+  });
+  frame.addEventListener('pointerleave', () => {
+    scene.style.setProperty('--tilt-x', '0deg');
+    scene.style.setProperty('--tilt-y', '0deg');
+  });
+}
+
 function setupSiteIntro() {
   const intro = document.getElementById('site-intro');
   if (!intro) return;
@@ -1149,6 +1166,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupScrollReveal();
   setupMetricObserver();
   setupThemeToggle();
+  setupStadiumTilt();
   try {
     if (document.body.dataset.page === 'report') await initReport();
     if (document.body.dataset.page === 'dashboard') await initDashboard();
