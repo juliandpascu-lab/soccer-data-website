@@ -129,7 +129,7 @@ h3 { margin: 0; font-size: 1rem; }
 .hero-match-stats strong { overflow: hidden; color: #fff; font-size: .8rem; text-overflow: ellipsis; white-space: nowrap; }
 .hero-pitch-line { padding-top: 0; border-top: 0; }
 .hero-pitch-line strong { color: #ffd36b; }
-.hero-pitch-board { position: relative; z-index: 1; height: 292px; margin: 18px auto 10px; overflow: hidden; border: 1px solid rgba(255,255,255,.2); border-radius: 9px; background: repeating-linear-gradient(90deg, rgba(255,255,255,.035) 0 12.5%, rgba(0,0,0,.035) 12.5% 25%), linear-gradient(135deg, #116149, #0b4d3a 52%, #0a3a2c); box-shadow: inset 0 0 0 1px rgba(255,255,255,.05), inset 0 -25px 40px rgba(1,21,14,.22); cursor: crosshair; touch-action: none; }
+.hero-pitch-board { position: relative; z-index: 1; height: 292px; margin: 18px auto 10px; overflow: hidden; border: 1px solid rgba(255,255,255,.2); border-radius: 9px; background: repeating-linear-gradient(90deg, rgba(255,255,255,.045) 0 12.5%, rgba(0,0,0,.045) 12.5% 25%), radial-gradient(ellipse at 50% 44%, rgba(92,190,122,.16), transparent 58%), linear-gradient(135deg, #116149, #0b4d3a 52%, #0a3a2c); box-shadow: inset 0 0 0 1px rgba(255,255,255,.05), inset 0 -25px 40px rgba(1,21,14,.22), 0 14px 22px rgba(1,20,14,.2); cursor: crosshair; touch-action: none; }
 .hero-pitch-board::before, .hero-pitch-board::after { position: absolute; content: ''; pointer-events: none; }
 .hero-pitch-board::before { inset: 9px; border: 1px solid rgba(255,255,255,.58); border-radius: 3px; }
 .hero-pitch-board::after { right: 9px; bottom: 9px; left: 9px; height: 23%; background: linear-gradient(180deg, transparent, rgba(3,29,20,.15)); }
@@ -141,7 +141,13 @@ h3 { margin: 0; font-size: 1rem; }
 .hero-pitch-box { top: 26%; width: 16%; height: 48%; border: 1px solid rgba(255,255,255,.58); }
 .hero-pitch-box-left { left: 9px; border-left: 0; }
 .hero-pitch-box-right { right: 9px; border-right: 0; }
-.hero-pitch-goal { top: 40%; width: 7px; height: 20%; border: 1px solid rgba(255,255,255,.75); background: rgba(255,255,255,.06); }
+.hero-pitch-six { top: 37%; width: 7%; height: 26%; border: 1px solid rgba(255,255,255,.52); }
+.hero-pitch-six-left { left: 9px; border-left: 0; }
+.hero-pitch-six-right { right: 9px; border-right: 0; }
+.hero-pitch-spot { top: 50%; width: 4px; height: 4px; border-radius: 50%; background: rgba(255,255,255,.72); transform: translateY(-50%); }
+.hero-pitch-spot-left { left: 18%; }
+.hero-pitch-spot-right { right: 18%; }
+.hero-pitch-goal { top: 40%; width: 8px; height: 20%; border: 1px solid rgba(255,255,255,.75); background: repeating-linear-gradient(0deg, rgba(255,255,255,.18) 0 2px, transparent 2px 5px), repeating-linear-gradient(90deg, rgba(255,255,255,.18) 0 2px, transparent 2px 5px), rgba(255,255,255,.06); }
 .hero-pitch-goal-left { left: 3px; border-left: 0; }
 .hero-pitch-goal-right { right: 3px; border-right: 0; }
 .hero-zone-label { position: absolute; top: 17px; z-index: 1; color: rgba(255,255,255,.45); font-size: .5rem; font-weight: 900; letter-spacing: .14em; pointer-events: none; }
@@ -149,10 +155,13 @@ h3 { margin: 0; font-size: 1rem; }
 .hero-zone-create { left: 50%; transform: translateX(-50%); }
 .hero-zone-finish { right: 25px; }
 .hero-pitch-direction { position: absolute; right: 17px; bottom: 17px; z-index: 1; color: rgba(255,255,255,.55); font-size: .48rem; font-weight: 900; letter-spacing: .12em; pointer-events: none; }
-.hero-drag-ball { position: absolute; top: 50%; left: 50%; z-index: 4; display: grid; place-items: center; width: 52px; height: 52px; padding: 0; border: 3px solid rgba(255,255,255,.88); border-radius: 50%; background: radial-gradient(circle at 31% 27%, #fff 0 5%, transparent 6%), radial-gradient(circle at 69% 33%, #121916 0 9%, transparent 10%), radial-gradient(circle at 42% 72%, #121916 0 8%, transparent 9%), radial-gradient(circle at 69% 73%, #121916 0 8%, transparent 9%), #f7faf5; box-shadow: 0 0 0 7px rgba(255,211,107,.14), 0 10px 18px rgba(1,20,14,.34); color: transparent; cursor: grab; transform: translate(-50%, -50%) rotate(-8deg); transition: box-shadow .18s ease, filter .18s ease; touch-action: none; }
-.hero-drag-ball span { opacity: 0; }
-.hero-drag-ball:hover, .hero-drag-ball:focus-visible { filter: brightness(1.08); outline: none; box-shadow: 0 0 0 10px rgba(255,211,107,.22), 0 13px 22px rgba(1,20,14,.42); }
-.hero-pitch-board.is-dragging .hero-drag-ball { cursor: grabbing; filter: brightness(1.1); box-shadow: 0 0 0 12px rgba(255,211,107,.28), 0 15px 24px rgba(1,20,14,.45); }
+.hero-drag-ball { position: absolute; top: 50%; left: 50%; z-index: 4; display: grid; place-items: center; width: 68px; height: 68px; padding: 0; border: 0; border-radius: 50%; background: transparent; box-shadow: 0 0 0 7px rgba(255,211,107,.14); color: transparent; cursor: grab; transform: translate(-50%, -50%); transition: box-shadow .18s ease, filter .18s ease; touch-action: none; }
+.hero-drag-ball::after { position: absolute; right: 12px; bottom: 2px; left: 12px; height: 9px; content: ''; border-radius: 50%; background: rgba(1,20,14,.5); filter: blur(4px); transform: translateY(5px); z-index: -1; }
+.hero-drag-ball img { display: block; width: 76px; height: 76px; object-fit: contain; filter: drop-shadow(0 8px 7px rgba(1,20,14,.36)); transition: transform .18s ease; user-select: none; }
+.hero-drag-ball:hover, .hero-drag-ball:focus-visible { filter: brightness(1.08); outline: none; box-shadow: 0 0 0 10px rgba(255,211,107,.22); }
+.hero-drag-ball:hover img, .hero-drag-ball:focus-visible img { transform: rotate(16deg) scale(1.06); }
+.hero-pitch-board.is-dragging .hero-drag-ball { cursor: grabbing; filter: brightness(1.1); box-shadow: 0 0 0 12px rgba(255,211,107,.28); }
+.hero-pitch-board.is-dragging .hero-drag-ball img { transform: rotate(32deg) scale(1.08); }
 .hero-pitch-board.is-active .hero-pitch-prompt { color: #ffd36b; }
 .hero-pitch-prompt { position: absolute; bottom: 17px; left: 17px; z-index: 1; color: rgba(255,255,255,.55); font-size: .5rem; font-weight: 900; letter-spacing: .12em; pointer-events: none; transition: color .18s ease; }
 .hero-pitch-guide { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 16px; color: rgba(255,255,255,.48); font-size: .5rem; font-weight: 900; letter-spacing: .13em; }
