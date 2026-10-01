@@ -29,6 +29,11 @@
 
   <main>
     <header class="hero">
+      <div class="hero-broadcast-strip" aria-label="Matchday data broadcast">
+        <span class="hero-broadcast-brand"><i></i> LIVE DATA BROADCAST</span>
+        <span>SEASON WINDOW <b>2011/12—2016/17</b></span>
+        <span>EVENT LOG / REPORT 01</span>
+      </div>
       <div class="hero-layout">
         <div class="hero-copy">
           <div class="eyebrow">Financial Data Analytics · Soccer event study</div>
@@ -38,18 +43,27 @@
           <div class="hero-meta"><span>⚡ MATCHDAY INTELLIGENCE</span><span>5 LEAGUES</span><span>68K+ PLAYER RECORDS</span><span>HOVER TO EXPLORE</span></div>
         </div>
         <aside class="hero-matchcard" aria-label="Report matchday snapshot">
-          <div class="hero-matchcard-head"><span>DATA BOARD / 01</span><span class="hero-live"><i></i> REPORT READY</span></div>
+          <div class="hero-matchcard-head"><span>MATCHDAY DATA / 01</span><span class="hero-live"><i></i> ANALYSIS LIVE</span></div>
           <div class="hero-scoreboard">
-            <div class="hero-score-side"><span class="hero-ball">⚽</span><strong>2011/12</strong><small>FIRST SEASON</small></div>
-            <div class="hero-score"><strong>05</strong><span>LEAGUES</span></div>
-            <div class="hero-score-side"><span class="hero-whistle">90′</span><strong>2016/17</strong><small>FINAL SEASON</small></div>
+            <div class="hero-score-side"><span class="hero-score-glyph">01</span><strong>2011/12</strong><small>KICK-OFF</small></div>
+            <div class="hero-score"><strong id="hero-goals-total">—</strong><span>GOALS LOGGED</span></div>
+            <div class="hero-score-side"><span class="hero-score-glyph hero-score-glyph-final">FT</span><strong>2016/17</strong><small>FULL-TIME</small></div>
           </div>
-          <div class="hero-pitch-line"><span>DOMESTIC EVENT LOG</span><strong>HOVER TO SCOUT</strong></div>
+          <div class="hero-match-stats">
+            <div><span>TOP SCORER</span><strong id="hero-top-scorer">—</strong></div>
+            <div><span>EVENT RECORDS</span><strong id="hero-record-count">—</strong></div>
+          </div>
+          <div class="hero-pitch-line"><span>DOMESTIC EVENT LOG</span><strong>READ THE REPORT ↓</strong></div>
         </aside>
       </div>
       <div class="hero-topline">
-        <div class="hero-feature-head"><span>TOP SCORER BOARD</span><span>FULL SOURCE WINDOW · RECORDED GOALS</span></div>
+        <div class="hero-feature-head"><span>TOP SCORER BOARD / TOP THREE</span><span>FULL SOURCE WINDOW · RECORDED GOALS</span></div>
         <div class="hero-player-rail" id="hero-top-players" aria-label="Top three recorded scorers"></div>
+        <div class="hero-broadcast-ticker" aria-label="Report data feed">
+          <span class="hero-ticker-label">DATA DESK</span>
+          <div class="hero-ticker-window"><div class="hero-ticker-track"><span>GOALS BY PLAYER</span><b>•</b><span>SCORING METHODS</span><b>•</b><span>LEAGUE COMPARISONS</span><b>•</b><span>GOAL LOCATION</span><b>•</b><span>GOALS BY PLAYER</span><b>•</b><span>SCORING METHODS</span></div></div>
+          <span class="hero-ticker-status"><i></i> TRACKING</span>
+        </div>
       </div>
     </header>
 

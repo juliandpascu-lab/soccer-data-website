@@ -1062,8 +1062,11 @@ async function initReport() {
   animateMetric('report-rows', rows.length);
   animateMetric('report-goals', totalGoals);
   animateMetric('report-players', unique(rows, 'player'));
+  animateMetric('hero-goals-total', totalGoals, formatNumber, 1050);
+  animateMetric('hero-record-count', rows.length, formatNumber, 950);
   setText('report-seasons', `${seasons[0]}–${seasons[seasons.length - 1]}`);
   setText('top-scorer', top[0]?.label || '—');
+  setText('hero-top-scorer', top[0]?.label || '—');
   animateMetric('top-scorer-goals', top[0]?.value);
   setText('top-team', groupSum(rows, 'team', 'goals')[0]?.label || '—');
   animateMetric('top-team-goals', groupSum(rows, 'team', 'goals')[0]?.value);
