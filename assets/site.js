@@ -1114,7 +1114,10 @@ function renderTable(rows, metric) {
 
 function setupScrollReveal() {
   const elements = document.querySelectorAll('.report-section, .method-card, .dashboard-card, .dashboard-stats .stat-card');
-  elements.forEach((element) => element.classList.add('reveal'));
+  elements.forEach((element, index) => {
+    element.classList.add('reveal');
+    element.style.setProperty('--reveal-delay', `${Math.min(index * 55, 360)}ms`);
+  });
   if (!('IntersectionObserver' in window)) {
     elements.forEach((element) => element.classList.add('is-visible'));
     return;
@@ -1128,6 +1131,22 @@ function setupScrollReveal() {
     });
   }, { threshold: .12 });
   elements.forEach((element) => observer.observe(element));
+}
+
+function setupScrollProgress() {
+  const progress = document.createElement('div');
+  progress.className = 'scroll-progress';
+  progress.setAttribute('aria-hidden', 'true');
+  progress.innerHTML = '<span></span>';
+  document.body.prepend(progress);
+  const update = () => {
+    const range = document.documentElement.scrollHeight - window.innerHeight;
+    const ratio = range > 0 ? Math.min(1, Math.max(0, window.scrollY / range)) : 0;
+    progress.style.setProperty('--scroll-progress', `${(ratio * 100).toFixed(2)}%`);
+  };
+  window.addEventListener('scroll', update, { passive: true });
+  window.addEventListener('resize', update);
+  update();
 }
 
 function setupMetricObserver() {
@@ -1232,6 +1251,7 @@ async function initDashboard() {
 
 document.addEventListener('DOMContentLoaded', async () => {
   setupSiteIntro();
+  setupScrollProgress();
   setupScrollReveal();
   setupMetricObserver();
   setupThemeToggle();
