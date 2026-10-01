@@ -126,7 +126,13 @@ h3 { margin: 0; font-size: 1rem; }
 .chart-card::before, .dashboard-card::before { position: absolute; top: -92px; right: -62px; z-index: 0; width: 220px; height: 220px; content: ''; border: 1px solid rgba(17,97,73,.11); border-radius: 50%; box-shadow: 0 0 0 24px rgba(17,97,73,.025), 0 0 0 48px rgba(215,149,66,.025); pointer-events: none; }
 .chart-card > *, .dashboard-card > * { position: relative; z-index: 1; }
 .chart-card canvas { display: block; width: 100%; height: 255px; }
-.chart-plot { display: block; width: 100%; height: 255px; overflow: hidden; }
+.chart-plot { position: relative; display: block; width: 100%; height: 255px; overflow: hidden; border-radius: 12px; }
+.chart-load-bar { position: absolute; top: 5px; right: 14px; left: 14px; z-index: 4; height: 3px; overflow: hidden; border-radius: 999px; background: color-mix(in srgb, var(--line) 74%, transparent); opacity: .78; }
+.chart-load-bar::before { position: absolute; inset: 0; content: ''; background: linear-gradient(90deg, transparent, rgba(255,255,255,.7), transparent); transform: translateX(-100%); }
+.chart-load-bar span { display: block; width: 100%; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--green), var(--gold), var(--coral)); transform: scaleX(0); transform-origin: left center; }
+.chart-is-visible .chart-load-bar span { transform: scaleX(1); transition: transform .95s cubic-bezier(.2,.8,.2,1); }
+.chart-is-visible .chart-load-bar::before { animation: chart-loading-sheen 1.1s .15s ease-out both; }
+.chart-plot:not(.chart-is-visible) .svg-mark, .chart-plot:not(.chart-is-visible) .svg-line, .chart-plot:not(.chart-is-visible) .svg-area, .chart-plot:not(.chart-is-visible) .funnel-segment, .chart-plot:not(.chart-is-visible) .funnel-row { animation-play-state: paused; }
 .svg-chart { display: block; width: 100%; height: 100%; overflow: visible; }
 .svg-surface { fill: #f8fbf7; stroke: rgba(17,97,73,.08); stroke-width: 1; }
 .svg-field-orbit { fill: none; stroke: rgba(17,97,73,.1); stroke-width: 18; }
@@ -173,7 +179,7 @@ h3 { margin: 0; font-size: 1rem; }
 .funnel-row { cursor: help; outline: none; }
 .funnel-row-bg { fill: #f2f6f2; stroke: transparent; transition: fill .16s ease, stroke .16s ease; }
 .funnel-row:hover .funnel-row-bg, .funnel-row:focus .funnel-row-bg { fill: #e5f0e6; stroke: rgba(17,97,73,.2); }
-.funnel-rank { fill: var(--gold); font: 900 9px Inter, ui-sans-serif, system-ui, sans-serif; }
+.funnel-rank { fill: var(--green-dark); font: 900 9px Inter, ui-sans-serif, system-ui, sans-serif; }
 .funnel-player { fill: var(--ink); font: 800 11px Inter, ui-sans-serif, system-ui, sans-serif; }
 .funnel-goals { fill: var(--coral); font: 900 12px Inter, ui-sans-serif, system-ui, sans-serif; }
 .funnel-track { fill: #dbe5df; }
@@ -184,6 +190,7 @@ h3 { margin: 0; font-size: 1rem; }
 @keyframes svg-mark-in { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes svg-line-draw { to { stroke-dashoffset: 0; } }
 @keyframes svg-area-in { from { opacity: 0; } to { opacity: .72; } }
+@keyframes chart-loading-sheen { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
 .funnel-detail { fill: var(--muted); font: 700 8px Inter, ui-sans-serif, system-ui, sans-serif; }
 .identity-rail { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 7px; margin-top: 15px; padding-top: 12px; border-top: 1px solid var(--line); }
 .identity-tile { display: grid; justify-items: center; gap: 5px; min-width: 0; padding: 5px 2px; text-align: center; }

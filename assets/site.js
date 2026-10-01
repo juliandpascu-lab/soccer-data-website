@@ -552,7 +552,7 @@ function renderSvg(element, content, viewBox = '0 0 820 300') {
     <path class="svg-field-orbit" d="M 626 -86 A 205 205 0 0 1 836 122"/>
     <path class="svg-field-orbit svg-field-orbit-secondary" d="M 678 -58 A 154 154 0 0 1 836 100"/>
     <line class="svg-field-line" x1="650" y1="0" x2="820" y2="170"/>`;
-  element.innerHTML = `<svg class="svg-chart" id="${id}" viewBox="${viewBox}" role="img" aria-label="Interactive chart" preserveAspectRatio="xMidYMid meet">${defs}${surface}${content}</svg>`;
+  element.innerHTML = `<div class="chart-load-bar" aria-hidden="true"><span></span></div><svg class="svg-chart" id="${id}" viewBox="${viewBox}" role="img" aria-label="Interactive chart" preserveAspectRatio="xMidYMid meet">${defs}${surface}${content}</svg>`;
   element.classList.add('interactive-chart');
 }
 
@@ -658,6 +658,7 @@ function drawSvgLine(element, items, { color = COLORS[0], decimals = false, form
     content += `<text class="svg-axis" x="${left - 10}" y="${(y + 4).toFixed(2)}" text-anchor="end">${svgEscape(formatValue ? formatValue(max * fraction) : svgValueLabel(max * fraction, decimals))}</text>`;
   });
   const points = data.map(point);
+  const labelStep = Math.max(1, Math.ceil(data.length / 8));
   const paint = svgPaint(element, color);
   const areaPoints = [`${left},${top + plotHeight}`, ...points.map((item) => `${item.x.toFixed(2)},${item.y.toFixed(2)}`), `${width - right},${top + plotHeight}`].join(' ');
   content += `<polygon class="svg-area" points="${areaPoints}" fill="url(#${chartSvgId(element)}-area)"/>`;
@@ -668,8 +669,11 @@ function drawSvgLine(element, items, { color = COLORS[0], decimals = false, form
     content += `<g class="svg-mark rank-${index}" style="--chart-delay:${index * 48}ms" tabindex="0"><title>${svgEscape(item.label)}: ${svgEscape(value)}</title>`;
     content += `<circle class="svg-point-halo" cx="${current.x.toFixed(2)}" cy="${current.y.toFixed(2)}" r="10" fill="${paint}"/>`;
     content += `<circle class="svg-point" cx="${current.x.toFixed(2)}" cy="${current.y.toFixed(2)}" r="5" fill="${paint}"/>`;
-    content += `<text class="svg-value" x="${current.x.toFixed(2)}" y="${Math.max(16, current.y - 12).toFixed(2)}" text-anchor="middle">${svgEscape(value)}</text>`;
-    content += `<text class="svg-label svg-x-label" x="${current.x.toFixed(2)}" y="${height - bottom + 20}" text-anchor="middle">${svgEscape(shortLabel(item.label, 15))}</text></g>`;
+    if (data.length <= 12 || index % labelStep === 0 || index === data.length - 1) {
+      content += `<text class="svg-value" x="${current.x.toFixed(2)}" y="${Math.max(16, current.y - 12).toFixed(2)}" text-anchor="middle">${svgEscape(value)}</text>`;
+      content += `<text class="svg-label svg-x-label" x="${current.x.toFixed(2)}" y="${height - bottom + 20}" text-anchor="middle">${svgEscape(shortLabel(item.label, 15))}</text>`;
+    }
+    content += '</g>';
   });
   content += '</g>';
   renderSvg(element, content);
@@ -755,7 +759,7 @@ function renderConversionFunnel(element, rows) {
     const y = 49 + index * 49;
     const barWidth = Math.max(4, (item.goals / maxGoals) * 148);
     const title = `${item.label}: ${formatNumber(item.attempts)} attempts, ${formatNumber(item.shotsOnTarget)} shots on target, ${formatNumber(item.goals)} goals, ${formatPercent(item.conversion)} conversion`;
-    content += `<g class="funnel-row" style="--chart-delay:${index * 55}ms" tabindex="0"><title>${svgEscape(title)}</title><rect class="funnel-row-bg" x="488" y="${y - 16}" width="298" height="40" rx="9"/><circle class="funnel-player-dot" cx="510" cy="${y - 4}" r="5"/><text class="funnel-rank" x="501" y="${y - 1}">0${index + 1}</text><text class="funnel-player" x="527" y="${y - 1}">${svgEscape(shortLabel(item.label, 17))}</text><text class="funnel-goals" x="774" y="${y - 1}" text-anchor="end">${formatNumber(item.goals)}</text><rect class="funnel-track" x="527" y="${y + 6}" width="148" height="6" rx="3"/><rect class="funnel-bar" x="527" y="${y + 6}" width="${barWidth.toFixed(2)}" height="6" rx="3" fill="${svgPaint(element, '#d66356')}"/><text class="funnel-detail" x="684" y="${y + 11}">${formatNumber(item.attempts)} att · ${formatNumber(item.shotsOnTarget)} SOT · ${formatPercent(item.conversion)}</text></g>`;
+    content += `<g class="funnel-row" style="--chart-delay:${index * 55}ms" tabindex="0"><title>${svgEscape(title)}</title><rect class="funnel-row-bg" x="488" y="${y - 16}" width="298" height="40" rx="9"/><circle class="funnel-player-dot" cx="510" cy="${y - 4}" r="11"/><text class="funnel-rank" x="510" y="${y - 1}" text-anchor="middle">0${index + 1}</text><text class="funnel-player" x="527" y="${y - 1}">${svgEscape(shortLabel(item.label, 17))}</text><text class="funnel-goals" x="774" y="${y - 1}" text-anchor="end">${formatNumber(item.goals)}</text><rect class="funnel-track" x="527" y="${y + 6}" width="148" height="6" rx="3"/><rect class="funnel-bar" x="527" y="${y + 6}" width="${barWidth.toFixed(2)}" height="6" rx="3" fill="${svgPaint(element, '#d66356')}"/><text class="funnel-detail" x="684" y="${y + 11}">${formatNumber(item.attempts)} att · ${formatNumber(item.shotsOnTarget)} SOT · ${formatPercent(item.conversion)}</text></g>`;
   });
   content += '</g>';
   renderSvg(element, content, `0 0 ${width} 320`);
@@ -1141,6 +1145,28 @@ function setupMetricObserver() {
   }, { threshold: .35, rootMargin: '0px 0px -8% 0px' });
 }
 
+function setupChartObserver() {
+  const charts = document.querySelectorAll('.chart-plot');
+  const reveal = (chart) => {
+    chart.classList.add('chart-is-visible');
+  };
+  if (prefersReducedMotion() || !('IntersectionObserver' in window)) {
+    charts.forEach(reveal);
+    return;
+  }
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      observer.unobserve(entry.target);
+      reveal(entry.target);
+    });
+  }, { threshold: .18, rootMargin: '0px 0px -10% 0px' });
+  charts.forEach((chart) => {
+    if (chart.classList.contains('chart-is-visible')) return;
+    observer.observe(chart);
+  });
+}
+
 function setupThemeToggle() {
   const button = document.getElementById('theme-toggle');
   if (!button) return;
@@ -1216,6 +1242,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   try {
     if (document.body.dataset.page === 'report') await initReport();
     if (document.body.dataset.page === 'dashboard') await initDashboard();
+    setupChartObserver();
   } catch (error) {
     console.error(error);
     const message = document.getElementById('load-error');
