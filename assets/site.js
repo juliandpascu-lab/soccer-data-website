@@ -1062,7 +1062,6 @@ async function initReport() {
   animateMetric('report-rows', rows.length);
   animateMetric('report-goals', totalGoals);
   animateMetric('report-players', unique(rows, 'player'));
-  animateMetric('hero-goals-total', totalGoals, formatNumber, 1050);
   setText('report-seasons', `${seasons[0]}–${seasons[seasons.length - 1]}`);
   setText('top-scorer', top[0]?.label || '—');
   setText('hero-top-scorer', top[0]?.label || '—');
@@ -1088,6 +1087,7 @@ async function initReport() {
   setText('rows-note', `${formatNumber(rows.length)} player-season-team records were generated from ${formatNumber(unique(rows, 'season'))} seasons of recorded events.`);
   renderScorerShirts(top, rows);
   renderHeroTopPlayers(top, rows);
+  setupHeroPitch(locationTotals(rows));
   renderLeagueBadges(rows);
   renderClubBadges(rows);
   renderTopScorerTimeline(rows);
@@ -1313,58 +1313,79 @@ function setupThemeToggle() {
   });
 }
 
-function setupMatchdayClock() {
-  const clock = document.getElementById('match-clock');
-  const phase = document.getElementById('match-clock-phase');
-  const status = document.getElementById('match-clock-status');
-  const progress = document.getElementById('match-clock-progress');
-  const toggle = document.getElementById('match-clock-toggle');
-  const reset = document.getElementById('match-clock-reset');
-  if (!clock || !phase || !status || !progress || !toggle || !reset) return;
+function setupHeroPitch(items) {
+  const pitch = document.getElementById('hero-interactive-pitch');
+  const ball = document.getElementById('hero-drag-ball');
+  const status = document.getElementById('hero-pitch-status');
+  const prompt = document.getElementById('hero-pitch-prompt');
+  const zone = document.getElementById('hero-pitch-zone');
+  const goals = document.getElementById('hero-pitch-goals');
+  if (!pitch || !ball || !status || !prompt || !zone || !goals) return;
 
-  const matchLength = 90 * 60;
-  let elapsed = 0;
-  let intervalId = null;
+  const locations = items.length ? items : LOCATION_FIELDS.map((location) => ({ ...location, value: 0 }));
+  const totalGoals = locations.reduce((total, item) => total + Number(item.value || 0), 0);
+  let position = { x: 50, y: 50 };
+  let hasMoved = false;
+  let dragging = false;
+
+  const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+  const nearestLocation = () => locations.reduce((closest, item) => {
+    const distance = ((item.x * 100 - position.x) ** 2) + ((item.y * 100 - position.y) ** 2);
+    return !closest || distance < closest.distance ? { item, distance } : closest;
+  }, null)?.item;
 
   const render = () => {
-    const minutes = Math.floor(elapsed / 60);
-    const seconds = elapsed % 60;
-    const running = intervalId !== null;
-    const finished = elapsed >= matchLength;
-    const currentPhase = finished ? 'FULL-TIME' : elapsed >= 45 * 60 ? '2ND HALF' : elapsed > 0 ? '1ST HALF' : 'PRE-MATCH';
-    clock.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-    phase.textContent = currentPhase;
-    status.textContent = finished ? 'FULL-TIME' : running ? 'CLOCK RUNNING' : elapsed > 0 ? 'CLOCK PAUSED' : 'READY FOR KICK-OFF';
-    progress.style.width = `${Math.min(100, (elapsed / matchLength) * 100)}%`;
-    clock.classList.toggle('is-running', running);
-    toggle.innerHTML = finished ? '<span aria-hidden="true">↻</span> RESTART CLOCK' : running ? '<span aria-hidden="true">Ⅱ</span> PAUSE CLOCK' : '<span aria-hidden="true">▶</span> START CLOCK';
+    const selected = nearestLocation();
+    const inFinalThird = position.x >= 70;
+    const inAttackingHalf = position.x >= 48;
+    const phase = inFinalThird ? 'FINISHING WINDOW' : inAttackingHalf ? 'ATTACKING HALF' : 'BUILD-UP PHASE';
+    const selectedValue = Number(selected?.value || 0);
+    ball.style.left = `${position.x}%`;
+    ball.style.top = `${position.y}%`;
+    ball.setAttribute('aria-valuenow', String(Math.round(position.x)));
+    ball.setAttribute('aria-valuetext', `${selected?.label || 'Pitch zone'}, ${formatNumber(selectedValue)} recorded goals`);
+    zone.textContent = selected?.label || 'Pitch zone';
+    goals.textContent = formatNumber(selectedValue);
+    status.textContent = hasMoved ? phase : 'READY TO PLAY';
+    prompt.textContent = hasMoved ? `${formatNumber(totalGoals ? (selectedValue / totalGoals) * 100 : 0)}% OF RECORDED GOALS` : 'DRAG TO SCOUT';
+    pitch.classList.toggle('is-active', hasMoved);
   };
 
-  const stop = () => {
-    if (intervalId !== null) window.clearInterval(intervalId);
-    intervalId = null;
-  };
-
-  toggle.addEventListener('click', () => {
-    if (elapsed >= matchLength) elapsed = 0;
-    if (intervalId === null) {
-      intervalId = window.setInterval(() => {
-        elapsed += 1;
-        if (elapsed >= matchLength) {
-          elapsed = matchLength;
-          stop();
-        }
-        render();
-      }, 1000);
-    } else {
-      stop();
-    }
+  const moveFromPointer = (event) => {
+    const rect = pitch.getBoundingClientRect();
+    position = {
+      x: clamp(((event.clientX - rect.left) / rect.width) * 100, 7, 93),
+      y: clamp(((event.clientY - rect.top) / rect.height) * 100, 12, 88),
+    };
+    hasMoved = true;
     render();
-  });
+  };
 
-  reset.addEventListener('click', () => {
-    stop();
-    elapsed = 0;
+  ball.addEventListener('pointerdown', (event) => {
+    event.preventDefault();
+    dragging = true;
+    ball.setPointerCapture(event.pointerId);
+    pitch.classList.add('is-dragging');
+    moveFromPointer(event);
+  });
+  ball.addEventListener('pointermove', (event) => {
+    if (dragging) moveFromPointer(event);
+  });
+  const stopDragging = (event) => {
+    if (!dragging) return;
+    dragging = false;
+    pitch.classList.remove('is-dragging');
+    if (event && ball.hasPointerCapture(event.pointerId)) ball.releasePointerCapture(event.pointerId);
+  };
+  ball.addEventListener('pointerup', stopDragging);
+  ball.addEventListener('pointercancel', stopDragging);
+  ball.addEventListener('keydown', (event) => {
+    const step = event.shiftKey ? 8 : 4;
+    const moves = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] };
+    if (!moves[event.key]) return;
+    event.preventDefault();
+    position = { x: clamp(position.x + moves[event.key][0], 7, 93), y: clamp(position.y + moves[event.key][1], 12, 88) };
+    hasMoved = true;
     render();
   });
 
@@ -1426,7 +1447,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupScrollReveal();
   setupMetricObserver();
   setupThemeToggle();
-  setupMatchdayClock();
   try {
     if (document.body.dataset.page === 'report') await initReport();
     if (document.body.dataset.page === 'dashboard') await initDashboard();

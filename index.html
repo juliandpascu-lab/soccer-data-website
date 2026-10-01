@@ -42,24 +42,26 @@
           <p class="byline">Prepared by Julian Pascu · source window: 2011–2017</p>
           <div class="hero-meta"><span>⚡ MATCHDAY INTELLIGENCE</span><span>5 LEAGUES</span><span>68K+ PLAYER RECORDS</span><span>HOVER TO EXPLORE</span></div>
         </div>
-        <aside class="hero-matchcard" aria-label="Report matchday snapshot">
-          <div class="hero-matchcard-head"><span>MATCHDAY CLOCK / REPORT 01</span><span class="hero-live"><i></i> <span id="match-clock-status">READY FOR KICK-OFF</span></span></div>
-          <div class="match-clock-shell">
-            <div class="match-clock-topline"><span>LIVE MATCH TIME</span><strong id="match-clock-phase">PRE-MATCH</strong></div>
-            <div class="match-clock-display" id="match-clock" aria-live="polite">00:00</div>
-            <div class="match-clock-context"><span>KICK-OFF</span><i></i><span>HALF-TIME 45:00</span><i></i><span>FULL-TIME 90:00</span></div>
-            <div class="match-clock-progress" aria-hidden="true"><span id="match-clock-progress"></span></div>
-            <div class="match-clock-controls">
-              <button class="match-clock-toggle" id="match-clock-toggle" type="button"><span aria-hidden="true">▶</span> START CLOCK</button>
-              <button class="match-clock-reset" id="match-clock-reset" type="button">RESET</button>
+        <aside class="hero-matchcard hero-playboard" aria-label="Interactive matchday pitch">
+          <div class="hero-matchcard-head"><span>TACTICAL DATA BOARD / 01</span><span class="hero-live"><i></i> <span id="hero-pitch-status">READY TO PLAY</span></span></div>
+          <div class="hero-pitch-board" id="hero-interactive-pitch" role="group" aria-label="Interactive matchday pitch. Drag the soccer ball to explore recorded goal zones.">
+            <div class="hero-pitch-lines" aria-hidden="true">
+              <span class="hero-pitch-halfway"></span><span class="hero-pitch-circle"></span><span class="hero-pitch-center-dot"></span>
+              <span class="hero-pitch-box hero-pitch-box-left"></span><span class="hero-pitch-box hero-pitch-box-right"></span>
+              <span class="hero-pitch-goal hero-pitch-goal-left"></span><span class="hero-pitch-goal hero-pitch-goal-right"></span>
             </div>
+            <span class="hero-zone-label hero-zone-build">BUILD-UP</span><span class="hero-zone-label hero-zone-create">CREATE</span><span class="hero-zone-label hero-zone-finish">FINISH</span>
+            <span class="hero-pitch-direction">ATTACKING DIRECTION →</span>
+            <button class="hero-drag-ball" id="hero-drag-ball" type="button" role="slider" aria-valuemin="7" aria-valuemax="93" aria-valuenow="50" aria-label="Soccer ball. Drag it or use the arrow keys to move it across the pitch."><span aria-hidden="true">⚽</span></button>
+            <span class="hero-pitch-prompt" id="hero-pitch-prompt">DRAG TO SCOUT</span>
           </div>
+          <div class="hero-pitch-guide"><span>DRAG OR USE ARROW KEYS</span><strong id="hero-pitch-zone">CENTRE OF THE BOX</strong></div>
           <div class="hero-match-stats">
             <div><span>DATA WINDOW</span><strong>2011–2017</strong></div>
-            <div><span>GOALS LOGGED</span><strong id="hero-goals-total">—</strong></div>
+            <div><span>GOALS IN ZONE</span><strong id="hero-pitch-goals">—</strong></div>
             <div><span>TOP SCORER</span><strong id="hero-top-scorer">—</strong></div>
           </div>
-          <div class="hero-pitch-line"><span>DOMESTIC EVENT LOG</span><strong>READ THE REPORT ↓</strong></div>
+          <div class="hero-pitch-line"><span>DOMESTIC EVENT LOG</span><strong>MOVE THE BALL TO EXPLORE ↓</strong></div>
         </aside>
       </div>
       <div class="hero-topline">
