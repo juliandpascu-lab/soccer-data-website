@@ -1063,7 +1063,6 @@ async function initReport() {
   animateMetric('report-goals', totalGoals);
   animateMetric('report-players', unique(rows, 'player'));
   animateMetric('hero-goals-total', totalGoals, formatNumber, 1050);
-  animateMetric('hero-record-count', rows.length, formatNumber, 950);
   setText('report-seasons', `${seasons[0]}–${seasons[seasons.length - 1]}`);
   setText('top-scorer', top[0]?.label || '—');
   setText('hero-top-scorer', top[0]?.label || '—');
@@ -1314,6 +1313,64 @@ function setupThemeToggle() {
   });
 }
 
+function setupMatchdayClock() {
+  const clock = document.getElementById('match-clock');
+  const phase = document.getElementById('match-clock-phase');
+  const status = document.getElementById('match-clock-status');
+  const progress = document.getElementById('match-clock-progress');
+  const toggle = document.getElementById('match-clock-toggle');
+  const reset = document.getElementById('match-clock-reset');
+  if (!clock || !phase || !status || !progress || !toggle || !reset) return;
+
+  const matchLength = 90 * 60;
+  let elapsed = 0;
+  let intervalId = null;
+
+  const render = () => {
+    const minutes = Math.floor(elapsed / 60);
+    const seconds = elapsed % 60;
+    const running = intervalId !== null;
+    const finished = elapsed >= matchLength;
+    const currentPhase = finished ? 'FULL-TIME' : elapsed >= 45 * 60 ? '2ND HALF' : elapsed > 0 ? '1ST HALF' : 'PRE-MATCH';
+    clock.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    phase.textContent = currentPhase;
+    status.textContent = finished ? 'FULL-TIME' : running ? 'CLOCK RUNNING' : elapsed > 0 ? 'CLOCK PAUSED' : 'READY FOR KICK-OFF';
+    progress.style.width = `${Math.min(100, (elapsed / matchLength) * 100)}%`;
+    clock.classList.toggle('is-running', running);
+    toggle.innerHTML = finished ? '<span aria-hidden="true">↻</span> RESTART CLOCK' : running ? '<span aria-hidden="true">Ⅱ</span> PAUSE CLOCK' : '<span aria-hidden="true">▶</span> START CLOCK';
+  };
+
+  const stop = () => {
+    if (intervalId !== null) window.clearInterval(intervalId);
+    intervalId = null;
+  };
+
+  toggle.addEventListener('click', () => {
+    if (elapsed >= matchLength) elapsed = 0;
+    if (intervalId === null) {
+      intervalId = window.setInterval(() => {
+        elapsed += 1;
+        if (elapsed >= matchLength) {
+          elapsed = matchLength;
+          stop();
+        }
+        render();
+      }, 1000);
+    } else {
+      stop();
+    }
+    render();
+  });
+
+  reset.addEventListener('click', () => {
+    stop();
+    elapsed = 0;
+    render();
+  });
+
+  render();
+}
+
 function setupSiteIntro() {
   const intro = document.getElementById('site-intro');
   if (!intro) return;
@@ -1369,6 +1426,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupScrollReveal();
   setupMetricObserver();
   setupThemeToggle();
+  setupMatchdayClock();
   try {
     if (document.body.dataset.page === 'report') await initReport();
     if (document.body.dataset.page === 'dashboard') await initDashboard();

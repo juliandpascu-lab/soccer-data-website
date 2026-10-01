@@ -43,15 +43,21 @@
           <div class="hero-meta"><span>⚡ MATCHDAY INTELLIGENCE</span><span>5 LEAGUES</span><span>68K+ PLAYER RECORDS</span><span>HOVER TO EXPLORE</span></div>
         </div>
         <aside class="hero-matchcard" aria-label="Report matchday snapshot">
-          <div class="hero-matchcard-head"><span>MATCHDAY DATA / 01</span><span class="hero-live"><i></i> ANALYSIS LIVE</span></div>
-          <div class="hero-scoreboard">
-            <div class="hero-score-side"><span class="hero-score-glyph">01</span><strong>2011/12</strong><small>KICK-OFF</small></div>
-            <div class="hero-score"><strong id="hero-goals-total">—</strong><span>GOALS LOGGED</span></div>
-            <div class="hero-score-side"><span class="hero-score-glyph hero-score-glyph-final">FT</span><strong>2016/17</strong><small>FULL-TIME</small></div>
+          <div class="hero-matchcard-head"><span>MATCHDAY CLOCK / REPORT 01</span><span class="hero-live"><i></i> <span id="match-clock-status">READY FOR KICK-OFF</span></span></div>
+          <div class="match-clock-shell">
+            <div class="match-clock-topline"><span>LIVE MATCH TIME</span><strong id="match-clock-phase">PRE-MATCH</strong></div>
+            <div class="match-clock-display" id="match-clock" aria-live="polite">00:00</div>
+            <div class="match-clock-context"><span>KICK-OFF</span><i></i><span>HALF-TIME 45:00</span><i></i><span>FULL-TIME 90:00</span></div>
+            <div class="match-clock-progress" aria-hidden="true"><span id="match-clock-progress"></span></div>
+            <div class="match-clock-controls">
+              <button class="match-clock-toggle" id="match-clock-toggle" type="button"><span aria-hidden="true">▶</span> START CLOCK</button>
+              <button class="match-clock-reset" id="match-clock-reset" type="button">RESET</button>
+            </div>
           </div>
           <div class="hero-match-stats">
+            <div><span>DATA WINDOW</span><strong>2011–2017</strong></div>
+            <div><span>GOALS LOGGED</span><strong id="hero-goals-total">—</strong></div>
             <div><span>TOP SCORER</span><strong id="hero-top-scorer">—</strong></div>
-            <div><span>EVENT RECORDS</span><strong id="hero-record-count">—</strong></div>
           </div>
           <div class="hero-pitch-line"><span>DOMESTIC EVENT LOG</span><strong>READ THE REPORT ↓</strong></div>
         </aside>
