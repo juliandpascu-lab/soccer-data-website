@@ -509,12 +509,50 @@ function svgEscape(value) {
   return escapeHtml(value);
 }
 
+function chartSvgId(element) {
+  return `chart-${String(element.id || 'visual').replace(/[^a-z0-9_-]/gi, '-')}`;
+}
+
+function svgPaint(element, color) {
+  const palette = {
+    '#116149': 'green',
+    '#d79542': 'gold',
+    '#d66356': 'coral',
+    '#5e8e79': 'sage',
+    '#7b6ea8': 'purple',
+    '#4a7890': 'blue',
+    '#a9794f': 'bronze',
+    '#8c9a62': 'olive',
+  };
+  const name = palette[color];
+  return name ? `url(#${chartSvgId(element)}-${name})` : color;
+}
+
 function svgValueLabel(value, decimals) {
   return decimals ? formatDecimal(value) : formatNumber(value);
 }
 
 function renderSvg(element, content, viewBox = '0 0 820 300') {
-  element.innerHTML = `<svg class="svg-chart" viewBox="${viewBox}" role="img" aria-label="Interactive chart" preserveAspectRatio="xMidYMid meet">${content}</svg>`;
+  const [, , viewWidth, viewHeight] = viewBox.split(/\s+/).map(Number);
+  const id = chartSvgId(element);
+  const defs = `<defs>
+    <linearGradient id="${id}-green" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0b3d30"/><stop offset=".5" stop-color="#218160"/><stop offset="1" stop-color="#69c091"/></linearGradient>
+    <linearGradient id="${id}-gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#a65c2a"/><stop offset=".5" stop-color="#d79542"/><stop offset="1" stop-color="#ffd36b"/></linearGradient>
+    <linearGradient id="${id}-coral" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9d3e3a"/><stop offset=".5" stop-color="#d66356"/><stop offset="1" stop-color="#f18d7d"/></linearGradient>
+    <linearGradient id="${id}-sage" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#356b58"/><stop offset="1" stop-color="#8dc5a7"/></linearGradient>
+    <linearGradient id="${id}-purple" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#584275"/><stop offset="1" stop-color="#b998d5"/></linearGradient>
+    <linearGradient id="${id}-blue" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#315e87"/><stop offset="1" stop-color="#79b4dd"/></linearGradient>
+    <linearGradient id="${id}-bronze" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#744b30"/><stop offset="1" stop-color="#cfa177"/></linearGradient>
+    <linearGradient id="${id}-olive" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5c6b3c"/><stop offset="1" stop-color="#b5c77d"/></linearGradient>
+    <linearGradient id="${id}-area" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d79542" stop-opacity=".34"/><stop offset="1" stop-color="#d79542" stop-opacity="0"/></linearGradient>
+    <filter id="${id}-shadow" x="-20%" y="-20%" width="150%" height="170%"><feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#0b3d30" flood-opacity=".18"/></filter>
+    <filter id="${id}-glow" x="-20%" y="-30%" width="150%" height="180%"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>`;
+  const surface = `<rect class="svg-surface" x="0" y="0" width="${viewWidth}" height="${viewHeight}" rx="18"/>
+    <path class="svg-field-orbit" d="M 626 -86 A 205 205 0 0 1 836 122"/>
+    <path class="svg-field-orbit svg-field-orbit-secondary" d="M 678 -58 A 154 154 0 0 1 836 100"/>
+    <line class="svg-field-line" x1="650" y1="0" x2="820" y2="170"/>`;
+  element.innerHTML = `<svg class="svg-chart" id="${id}" viewBox="${viewBox}" role="img" aria-label="Interactive chart" preserveAspectRatio="xMidYMid meet">${defs}${surface}${content}</svg>`;
   element.classList.add('interactive-chart');
 }
 
@@ -544,12 +582,17 @@ function drawSvgBars(element, items, { horizontal = true, color = COLORS[0], max
       const barWidth = Math.max(3, ((Number(item.value) || 0) / max) * plotWidth);
       const label = shortLabel(item.label, 29);
       const value = valueText(item);
+      const icon = iconFor ? iconFor(item) : '';
       const outside = left + barWidth + 9;
       const inside = outside + 42 > width - 8;
       const valueX = inside ? left + barWidth - 9 : outside;
-      content += `<g class="svg-mark" tabindex="0"><title>${svgEscape(item.label)}: ${svgEscape(value)}</title>`;
+      const paint = svgPaint(element, colors[index % colors.length]);
+      content += `<g class="svg-mark rank-${index}" style="--chart-delay:${index * 38}ms" tabindex="0"><title>${svgEscape(item.label)}: ${svgEscape(value)}</title>`;
       content += `<rect class="svg-track" x="${left}" y="${barY.toFixed(2)}" width="${plotWidth}" height="${barHeight.toFixed(2)}" rx="6"/>`;
-      content += `<rect class="svg-bar" x="${left}" y="${barY.toFixed(2)}" width="${barWidth.toFixed(2)}" height="${barHeight.toFixed(2)}" rx="6" fill="${colors[index % colors.length]}"/>`;
+      content += `<rect class="svg-bar-shadow" x="${(left + 4).toFixed(2)}" y="${(barY + 4).toFixed(2)}" width="${barWidth.toFixed(2)}" height="${barHeight.toFixed(2)}" rx="6" fill="${paint}"/>`;
+      content += `<rect class="svg-bar" x="${left}" y="${barY.toFixed(2)}" width="${barWidth.toFixed(2)}" height="${barHeight.toFixed(2)}" rx="6" fill="${paint}" filter="url(#${chartSvgId(element)}-shadow)"/>`;
+      content += `<rect class="svg-bar-highlight" x="${left + 2}" y="${(barY + 2).toFixed(2)}" width="${Math.max(0, barWidth - 4).toFixed(2)}" height="2" rx="1"/>`;
+      if (icon) content += `<image class="svg-label-icon svg-horizontal-icon" href="${svgEscape(icon)}" x="${Math.max(5, left - 210)}" y="${(barY - 2).toFixed(2)}" width="22" height="22" preserveAspectRatio="xMidYMid meet"/>`;
       content += `<text class="svg-label" x="${left - 12}" y="${(barY + barHeight / 2 + 4).toFixed(2)}" text-anchor="end">${svgEscape(label)}</text>`;
       content += `<text class="svg-value ${inside ? 'svg-value-inside' : ''}" x="${valueX.toFixed(2)}" y="${(barY + barHeight / 2 + 4).toFixed(2)}" text-anchor="${inside ? 'end' : 'start'}">${svgEscape(value)}</text></g>`;
     });
@@ -575,8 +618,11 @@ function drawSvgBars(element, items, { horizontal = true, color = COLORS[0], max
       const label = shortLabel(item.label, 14);
       const icon = iconFor ? iconFor(item) : '';
       const labelY = icon ? height - bottom + 36 : height - bottom + 20;
-      content += `<g class="svg-mark" tabindex="0"><title>${svgEscape(item.label)}: ${svgEscape(value)}</title>`;
-      content += `<rect class="svg-bar" x="${x.toFixed(2)}" y="${y.toFixed(2)}" width="${barWidth.toFixed(2)}" height="${barHeight.toFixed(2)}" rx="6" fill="${colors[index % colors.length]}"/>`;
+      const paint = svgPaint(element, colors[index % colors.length]);
+      content += `<g class="svg-mark rank-${index}" style="--chart-delay:${index * 48}ms" tabindex="0"><title>${svgEscape(item.label)}: ${svgEscape(value)}</title>`;
+      content += `<rect class="svg-bar-shadow" x="${(x + 4).toFixed(2)}" y="${(y + 5).toFixed(2)}" width="${barWidth.toFixed(2)}" height="${barHeight.toFixed(2)}" rx="6" fill="${paint}"/>`;
+      content += `<rect class="svg-bar" x="${x.toFixed(2)}" y="${y.toFixed(2)}" width="${barWidth.toFixed(2)}" height="${barHeight.toFixed(2)}" rx="6" fill="${paint}" filter="url(#${chartSvgId(element)}-shadow)"/>`;
+      content += `<rect class="svg-bar-highlight" x="${(x + 2).toFixed(2)}" y="${(y + 2).toFixed(2)}" width="${Math.max(0, barWidth - 4).toFixed(2)}" height="2" rx="1"/>`;
       content += `<text class="svg-value" x="${(x + barWidth / 2).toFixed(2)}" y="${Math.max(16, y - 8).toFixed(2)}" text-anchor="middle">${svgEscape(value)}</text>`;
       if (icon) content += `<image class="svg-label-icon" href="${svgEscape(icon)}" x="${(x + barWidth / 2 - 12).toFixed(2)}" y="${height - bottom - 2}" width="24" height="24" preserveAspectRatio="xMidYMid meet"/>`;
       content += `<text class="svg-label svg-x-label" x="${(x + barWidth / 2).toFixed(2)}" y="${labelY}" text-anchor="middle">${svgEscape(label)}</text></g>`;
@@ -612,12 +658,16 @@ function drawSvgLine(element, items, { color = COLORS[0], decimals = false, form
     content += `<text class="svg-axis" x="${left - 10}" y="${(y + 4).toFixed(2)}" text-anchor="end">${svgEscape(formatValue ? formatValue(max * fraction) : svgValueLabel(max * fraction, decimals))}</text>`;
   });
   const points = data.map(point);
-  content += `<polyline class="svg-line" fill="none" stroke="${color}" points="${points.map((item) => `${item.x.toFixed(2)},${item.y.toFixed(2)}`).join(' ')}"/>`;
+  const paint = svgPaint(element, color);
+  const areaPoints = [`${left},${top + plotHeight}`, ...points.map((item) => `${item.x.toFixed(2)},${item.y.toFixed(2)}`), `${width - right},${top + plotHeight}`].join(' ');
+  content += `<polygon class="svg-area" points="${areaPoints}" fill="url(#${chartSvgId(element)}-area)"/>`;
+  content += `<polyline class="svg-line" fill="none" stroke="${paint}" filter="url(#${chartSvgId(element)}-glow)" points="${points.map((item) => `${item.x.toFixed(2)},${item.y.toFixed(2)}`).join(' ')}"/>`;
   data.forEach((item, index) => {
     const current = points[index];
     const value = formatValue ? formatValue(item.value) : svgValueLabel(item.value, decimals);
-    content += `<g class="svg-mark" tabindex="0"><title>${svgEscape(item.label)}: ${svgEscape(value)}</title>`;
-    content += `<circle class="svg-point" cx="${current.x.toFixed(2)}" cy="${current.y.toFixed(2)}" r="5" fill="${color}"/>`;
+    content += `<g class="svg-mark rank-${index}" style="--chart-delay:${index * 48}ms" tabindex="0"><title>${svgEscape(item.label)}: ${svgEscape(value)}</title>`;
+    content += `<circle class="svg-point-halo" cx="${current.x.toFixed(2)}" cy="${current.y.toFixed(2)}" r="10" fill="${paint}"/>`;
+    content += `<circle class="svg-point" cx="${current.x.toFixed(2)}" cy="${current.y.toFixed(2)}" r="5" fill="${paint}"/>`;
     content += `<text class="svg-value" x="${current.x.toFixed(2)}" y="${Math.max(16, current.y - 12).toFixed(2)}" text-anchor="middle">${svgEscape(value)}</text>`;
     content += `<text class="svg-label svg-x-label" x="${current.x.toFixed(2)}" y="${height - bottom + 20}" text-anchor="middle">${svgEscape(shortLabel(item.label, 15))}</text></g>`;
   });
@@ -692,7 +742,8 @@ function renderConversionFunnel(element, rows) {
       ? `${formatPercent(stage.value / totals[1].value)} of shots on target`
       : detail;
     const path = `M ${topLeft.toFixed(2)} ${y} L ${topRight.toFixed(2)} ${y} L ${bottomRight.toFixed(2)} ${(y + stageHeight).toFixed(2)} L ${bottomLeft.toFixed(2)} ${(y + stageHeight).toFixed(2)} Z`;
-    content += `<g class="funnel-segment" tabindex="0"><title>${stage.label}: ${formatNumber(stage.value)} (${svgEscape(index === totals.length - 1 ? nextDetail : detail)})</title><path d="${path}" fill="${stage.color}"/><text class="funnel-label" x="${funnelCenter}" y="${y + 28}" text-anchor="middle">${stage.label}</text><text class="funnel-value" x="${funnelCenter}" y="${y + 51}" text-anchor="middle">${formatNumber(stage.value)}</text></g>`;
+    const paint = svgPaint(element, stage.color);
+    content += `<g class="funnel-segment" style="--chart-delay:${index * 90}ms" tabindex="0"><title>${stage.label}: ${formatNumber(stage.value)} (${svgEscape(index === totals.length - 1 ? nextDetail : detail)})</title><path d="${path}" fill="${paint}" filter="url(#${chartSvgId(element)}-shadow)"/><path class="funnel-gloss" d="M ${topLeft.toFixed(2)} ${(y + 2).toFixed(2)} L ${topRight.toFixed(2)} ${(y + 2).toFixed(2)} L ${(topRight - 12).toFixed(2)} ${(y + 7).toFixed(2)} L ${(topLeft + 12).toFixed(2)} ${(y + 7).toFixed(2)} Z"/><text class="funnel-label" x="${funnelCenter}" y="${y + 28}" text-anchor="middle">${stage.label}</text><text class="funnel-value" x="${funnelCenter}" y="${y + 51}" text-anchor="middle">${formatNumber(stage.value)}</text></g>`;
     if (index < totals.length - 1) {
       content += `<text class="funnel-rate" x="${funnelCenter + 216}" y="${y + stageHeight + 5}">${formatPercent(totals[index + 1].value / stage.value)} CONTINUE</text>`;
     }
@@ -704,7 +755,7 @@ function renderConversionFunnel(element, rows) {
     const y = 49 + index * 49;
     const barWidth = Math.max(4, (item.goals / maxGoals) * 148);
     const title = `${item.label}: ${formatNumber(item.attempts)} attempts, ${formatNumber(item.shotsOnTarget)} shots on target, ${formatNumber(item.goals)} goals, ${formatPercent(item.conversion)} conversion`;
-    content += `<g class="funnel-row" tabindex="0"><title>${svgEscape(title)}</title><rect class="funnel-row-bg" x="488" y="${y - 16}" width="298" height="40" rx="9"/><text class="funnel-rank" x="501" y="${y - 1}">0${index + 1}</text><text class="funnel-player" x="527" y="${y - 1}">${svgEscape(shortLabel(item.label, 17))}</text><text class="funnel-goals" x="774" y="${y - 1}" text-anchor="end">${formatNumber(item.goals)}</text><rect class="funnel-track" x="527" y="${y + 6}" width="148" height="6" rx="3"/><rect class="funnel-bar" x="527" y="${y + 6}" width="${barWidth.toFixed(2)}" height="6" rx="3"/><text class="funnel-detail" x="684" y="${y + 11}">${formatNumber(item.attempts)} att · ${formatNumber(item.shotsOnTarget)} SOT · ${formatPercent(item.conversion)}</text></g>`;
+    content += `<g class="funnel-row" style="--chart-delay:${index * 55}ms" tabindex="0"><title>${svgEscape(title)}</title><rect class="funnel-row-bg" x="488" y="${y - 16}" width="298" height="40" rx="9"/><circle class="funnel-player-dot" cx="510" cy="${y - 4}" r="5"/><text class="funnel-rank" x="501" y="${y - 1}">0${index + 1}</text><text class="funnel-player" x="527" y="${y - 1}">${svgEscape(shortLabel(item.label, 17))}</text><text class="funnel-goals" x="774" y="${y - 1}" text-anchor="end">${formatNumber(item.goals)}</text><rect class="funnel-track" x="527" y="${y + 6}" width="148" height="6" rx="3"/><rect class="funnel-bar" x="527" y="${y + 6}" width="${barWidth.toFixed(2)}" height="6" rx="3" fill="${svgPaint(element, '#d66356')}"/><text class="funnel-detail" x="684" y="${y + 11}">${formatNumber(item.attempts)} att · ${formatNumber(item.shotsOnTarget)} SOT · ${formatPercent(item.conversion)}</text></g>`;
   });
   content += '</g>';
   renderSvg(element, content, `0 0 ${width} 320`);
@@ -931,12 +982,12 @@ async function initReport() {
 
   reportChart('chart-top-scorers', rows, 'player', 'goals', { color: COLORS, maxItems: 10 });
   reportChart('chart-season-goals', rows, 'season', 'goals', { line: true, color: COLORS[1] });
-  reportChart('chart-league-goals', rows, 'league', 'goals', { horizontal: false, color: COLORS, maxItems: 5 });
+  reportChart('chart-league-goals', rows, 'league', 'goals', { horizontal: false, color: COLORS, maxItems: 5, iconFor: (item) => LEAGUE_BADGES[item.key] });
   reportChart('chart-contributions', rows, 'player', 'goal_contributions', { color: COLORS[2], maxItems: 10 });
   drawBars(document.getElementById('chart-methods'), methodTotals(rows, 'bodypart'), { horizontal: false, color: COLORS, maxItems: 3 });
   renderPitchBubbles(document.getElementById('chart-location'), locationTotals(rows));
   reportChart('chart-cards', rows, 'player', 'yellow_cards', { color: COLORS[4], maxItems: 10 });
-  reportChart('chart-teams', rows, 'team', 'goals', { color: COLORS, maxItems: 10 });
+  reportChart('chart-teams', rows, 'team', 'goals', { color: COLORS, maxItems: 10, iconFor: (item) => CLUB_BADGES[item.key]?.[0] });
   renderConversionFunnel(document.getElementById('chart-conversion-funnel'), rows);
 }
 
