@@ -122,11 +122,11 @@ h3 { margin: 0; font-size: 1rem; }
 .section-number { color: var(--gold); font-size: .78rem; font-weight: 800; letter-spacing: .14em; }
 .finding { margin: 0 0 13px; color: var(--muted); font-size: .96rem; line-height: 1.55; }
 .finding strong { color: var(--ink); }
-.chart-card { position: relative; isolation: isolate; min-height: 278px; overflow: hidden; padding: 16px; background: var(--card); border: 1px solid var(--line); border-top: 3px solid var(--green); border-radius: 18px; box-shadow: var(--shadow); }
-.chart-card::before, .dashboard-card::before { position: absolute; top: -92px; right: -62px; z-index: 0; width: 220px; height: 220px; content: ''; border: 1px solid rgba(17,97,73,.11); border-radius: 50%; box-shadow: 0 0 0 24px rgba(17,97,73,.025), 0 0 0 48px rgba(215,149,66,.025); pointer-events: none; }
+.chart-card { position: relative; isolation: isolate; min-height: 278px; overflow: hidden; padding: 18px; background: linear-gradient(145deg, var(--card), color-mix(in srgb, var(--card) 92%, var(--mint))); border: 1px solid var(--line); border-top: 2px solid var(--green); border-radius: 20px; box-shadow: var(--shadow); }
+.chart-card::before, .dashboard-card::before { position: absolute; top: -92px; right: -62px; z-index: 0; width: 220px; height: 220px; content: ''; border: 1px solid rgba(17,97,73,.08); border-radius: 50%; box-shadow: 0 0 0 24px rgba(17,97,73,.018), 0 0 0 48px rgba(215,149,66,.018); pointer-events: none; }
 .chart-card > *, .dashboard-card > * { position: relative; z-index: 1; }
 .chart-card canvas { display: block; width: 100%; height: 255px; }
-.chart-plot { position: relative; display: block; width: 100%; height: 255px; overflow: hidden; border-radius: 12px; }
+.chart-plot { position: relative; display: block; width: 100%; height: 255px; overflow: hidden; }
 .chart-load-bar { position: absolute; top: 5px; right: 14px; left: 14px; z-index: 4; height: 3px; overflow: hidden; border-radius: 999px; background: color-mix(in srgb, var(--line) 74%, transparent); opacity: .78; }
 .chart-load-bar::before { position: absolute; inset: 0; content: ''; background: linear-gradient(90deg, transparent, rgba(255,255,255,.7), transparent); transform: translateX(-100%); }
 .chart-load-bar span { display: block; width: 100%; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--green), var(--gold), var(--coral)); transform: scaleX(0); transform-origin: left center; }
@@ -134,7 +134,6 @@ h3 { margin: 0; font-size: 1rem; }
 .chart-is-visible .chart-load-bar::before { animation: chart-loading-sheen 1.1s .15s ease-out both; }
 .chart-plot:not(.chart-is-visible) .svg-mark, .chart-plot:not(.chart-is-visible) .svg-line, .chart-plot:not(.chart-is-visible) .svg-area, .chart-plot:not(.chart-is-visible) .funnel-segment, .chart-plot:not(.chart-is-visible) .funnel-row { animation-play-state: paused; }
 .svg-chart { display: block; width: 100%; height: 100%; overflow: visible; }
-.svg-surface { fill: #f8fbf7; stroke: rgba(17,97,73,.08); stroke-width: 1; }
 .svg-field-orbit { fill: none; stroke: rgba(17,97,73,.1); stroke-width: 18; }
 .svg-field-orbit-secondary { stroke: rgba(215,149,66,.12); stroke-width: 2; stroke-dasharray: 3 8; }
 .svg-field-line { stroke: rgba(17,97,73,.08); stroke-width: 1; stroke-dasharray: 5 7; }
@@ -303,7 +302,7 @@ button:hover { background: var(--green-dark); }
 .dashboard-stats .stat-label { color: var(--muted); }
 .dashboard-stats .stat-value { color: var(--green-dark); }
 .dashboard-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 14px; margin-bottom: 25px; }
-.dashboard-card { position: relative; isolation: isolate; overflow: hidden; padding: 18px; background: var(--card); border: 1px solid var(--line); border-top: 3px solid var(--green); border-radius: 18px; box-shadow: var(--shadow); }
+.dashboard-card { position: relative; isolation: isolate; overflow: hidden; padding: 18px; background: linear-gradient(145deg, var(--card), color-mix(in srgb, var(--card) 92%, var(--mint))); border: 1px solid var(--line); border-top: 2px solid var(--green); border-radius: 20px; box-shadow: var(--shadow); }
 .dashboard-card { transition: transform .2s ease, box-shadow .2s ease; }
 .dashboard-card:hover { transform: translateY(-3px); box-shadow: 0 20px 34px rgba(16, 34, 29, .12); }
 .dashboard-card-primary { grid-column: span 7; }
@@ -430,7 +429,6 @@ tbody tr:hover { background: #f0f7f1; }
 [data-theme="dark"] .svg-label { fill: #b7cbc0; }
 [data-theme="dark"] .svg-axis { fill: #91a69a; }
 [data-theme="dark"] .svg-value { fill: #edf7f0; }
-[data-theme="dark"] .svg-surface { fill: #10221b; stroke: rgba(121,210,165,.12); }
 [data-theme="dark"] .svg-field-orbit { stroke: rgba(121,210,165,.12); }
 [data-theme="dark"] .svg-field-orbit-secondary { stroke: rgba(240,188,99,.16); }
 [data-theme="dark"] .svg-field-line { stroke: rgba(121,210,165,.1); }

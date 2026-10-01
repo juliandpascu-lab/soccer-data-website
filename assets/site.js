@@ -533,7 +533,6 @@ function svgValueLabel(value, decimals) {
 }
 
 function renderSvg(element, content, viewBox = '0 0 820 300') {
-  const [, , viewWidth, viewHeight] = viewBox.split(/\s+/).map(Number);
   const id = chartSvgId(element);
   const defs = `<defs>
     <linearGradient id="${id}-green" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0b3d30"/><stop offset=".5" stop-color="#218160"/><stop offset="1" stop-color="#69c091"/></linearGradient>
@@ -548,8 +547,7 @@ function renderSvg(element, content, viewBox = '0 0 820 300') {
     <filter id="${id}-shadow" x="-20%" y="-20%" width="150%" height="170%"><feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#0b3d30" flood-opacity=".18"/></filter>
     <filter id="${id}-glow" x="-20%" y="-30%" width="150%" height="180%"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
   </defs>`;
-  const surface = `<rect class="svg-surface" x="0" y="0" width="${viewWidth}" height="${viewHeight}" rx="18"/>
-    <path class="svg-field-orbit" d="M 626 -86 A 205 205 0 0 1 836 122"/>
+  const surface = `<path class="svg-field-orbit" d="M 626 -86 A 205 205 0 0 1 836 122"/>
     <path class="svg-field-orbit svg-field-orbit-secondary" d="M 678 -58 A 154 154 0 0 1 836 100"/>
     <line class="svg-field-line" x1="650" y1="0" x2="820" y2="170"/>`;
   element.innerHTML = `<div class="chart-load-bar" aria-hidden="true"><span></span></div><svg class="svg-chart" id="${id}" viewBox="${viewBox}" role="img" aria-label="Interactive chart" preserveAspectRatio="xMidYMid meet">${defs}${surface}${content}</svg>`;
