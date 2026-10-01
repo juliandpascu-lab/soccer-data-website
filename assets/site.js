@@ -298,9 +298,46 @@ function leagueBadgeMarkup(code) {
   return identityBadge(LEAGUE_BADGES[code], code, LEAGUE_NAMES[code] || code, 'league-badge');
 }
 
+const GENERATED_CLUB_COLORS = [
+  ['#0b3d30', '#2f9a73'], ['#123c70', '#5ba7dc'], ['#8c2530', '#e18a67'],
+  ['#6b4a1f', '#d9aa52'], ['#3b2f68', '#9e8ed1'], ['#193d49', '#4da6a1'],
+  ['#5c1e3c', '#c56c95'], ['#304b2b', '#94b96b'], ['#49352a', '#bf8b5e'],
+];
+
+function clubInitials(team) {
+  const words = String(team || 'Club').replace(/[^a-z0-9 ]/gi, ' ').trim().split(/\s+/).filter(Boolean);
+  const ignored = new Set(['a', 'ac', 'afc', 'as', 'fc', 'gfc', 'sc', 'sv', 'tsg', 'us', 'vfb', 'vfl']);
+  const meaningful = words.filter((word) => !ignored.has(word.toLowerCase()));
+  const source = meaningful.length ? meaningful : words;
+  const initials = source.slice(0, 3).map((word) => word[0]).join('').toUpperCase();
+  return (initials || 'FC').slice(0, 3);
+}
+
+function clubColorIndex(team) {
+  return [...String(team || '')].reduce((total, character) => ((total * 31) + character.charCodeAt(0)) % GENERATED_CLUB_COLORS.length, 0);
+}
+
+function generatedClubInfo(team) {
+  const [primary, accent] = GENERATED_CLUB_COLORS[clubColorIndex(team)];
+  return { initials: clubInitials(team), primary, accent };
+}
+
+function generatedClubBadge(team) {
+  const { initials, primary, accent } = generatedClubInfo(team);
+  return `<span class="identity-badge club-badge generated-club-badge" title="${escapeHtml(team)} crest" aria-label="${escapeHtml(team)} crest" style="--club-primary:${primary};--club-accent:${accent}"><svg viewBox="0 0 48 54" role="img" aria-hidden="true"><path class="generated-club-shield" d="M24 2 44 9v16c0 13-7 22-20 27C11 47 4 38 4 25V9Z"/><path class="generated-club-stripe" d="M9 13h30v7H9z"/><text class="generated-club-code" x="24" y="37" text-anchor="middle">${escapeHtml(initials)}</text></svg></span>`;
+}
+
+function teamBadgeIcon(team) {
+  const badge = CLUB_BADGES[team];
+  if (badge) return badge[0];
+  const { initials, primary, accent } = generatedClubInfo(team);
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 54"><path fill="${primary}" stroke="#fff" stroke-width="1.5" d="M24 2 44 9v16c0 13-7 22-20 27C11 47 4 38 4 25V9Z"/><path fill="${accent}" d="M9 13h30v7H9z"/><text fill="#fff" font-family="Arial,sans-serif" font-size="10" font-weight="900" text-anchor="middle" x="24" y="37">${initials}</text></svg>`;
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+}
+
 function teamBadgeMarkup(team) {
   const badge = CLUB_BADGES[team];
-  return identityBadge(badge?.[0], badge?.[1], team, 'club-badge');
+  return badge ? identityBadge(badge[0], badge[1], team, 'club-badge') : generatedClubBadge(team);
 }
 
 function renderLeagueBadges(rows) {
@@ -528,8 +565,49 @@ function svgPaint(element, color) {
   return name ? `url(#${chartSvgId(element)}-${name})` : color;
 }
 
+const WORLD_CUP_BALLS = [
+  { name: 'TELSTAR 1970', accent: '#263f68', pattern: 'star' },
+  { name: 'TANGO 1982', accent: '#bd4b45', pattern: 'orbit' },
+  { name: 'AZTECA 1986', accent: '#b57935', pattern: 'azteca' },
+  { name: 'TRICOLORE 1998', accent: '#2d8a59', pattern: 'tricolor' },
+  { name: 'TEAMGEIST 2006', accent: '#7b6ea8', pattern: 'panel' },
+  { name: 'JABULANI 2010', accent: '#d66356', pattern: 'orbit' },
+  { name: 'BRAZUCA 2014', accent: '#23816a', pattern: 'brazuca' },
+  { name: 'TELSTAR 18', accent: '#4a7890', pattern: 'hex' },
+];
+
+function svgWorldCupBall(x, y, size, index, extraClass = '', extraStyle = '') {
+  const ball = WORLD_CUP_BALLS[index % WORLD_CUP_BALLS.length];
+  const radius = size / 2;
+  const inner = radius * .72;
+  const stroke = Math.max(1, size * .07).toFixed(2);
+  const px = (value) => value.toFixed(2);
+  const patterns = {
+    star: `<path d="M ${px(x)} ${px(y - inner)} l ${px(inner * .23)} ${px(inner * .48)} l ${px(inner * .53)} ${px(inner * .06)} l ${px(inner * -.4)} ${px(inner * .34)} l ${px(inner * .2)} ${px(inner * .5)} l ${px(inner * -.56)} ${px(inner * -.3)} l ${px(inner * -.4)} ${px(inner * .3)} l ${px(inner * .18)} ${px(inner * -.5)} l ${px(inner * -.4)} ${px(inner * -.34)} l ${px(inner * .53)} ${px(inner * -.06)} z"/>`,
+    orbit: `<ellipse cx="${px(x)}" cy="${px(y)}" rx="${px(inner * .92)}" ry="${px(inner * .36)}"/><ellipse cx="${px(x)}" cy="${px(y)}" rx="${px(inner * .36)}" ry="${px(inner * .92)}"/>`,
+    azteca: `<path d="M ${px(x - inner * .88)} ${px(y - inner * .38)} L ${px(x)} ${px(y - inner)} L ${px(x + inner * .88)} ${px(y - inner * .38)} L ${px(x)} ${px(y + inner)} Z"/><path d="M ${px(x - inner * .64)} ${px(y + inner * .5)} L ${px(x)} ${px(y + inner * .02)} L ${px(x + inner * .64)} ${px(y + inner * .5)}"/>`,
+    tricolor: `<path d="M ${px(x - inner)} ${px(y - inner * .18)} Q ${px(x)} ${px(y - inner * .75)} ${px(x + inner)} ${px(y - inner * .18)}"/><path d="M ${px(x - inner * .82)} ${px(y + inner * .22)} Q ${px(x)} ${px(y - inner * .26)} ${px(x + inner * .82)} ${px(y + inner * .22)}"/><path d="M ${px(x - inner * .52)} ${px(y + inner * .74)} Q ${px(x)} ${px(y + inner * .15)} ${px(x + inner * .52)} ${px(y + inner * .74)}"/>`,
+    panel: `<path d="M ${px(x)} ${px(y - inner)} L ${px(x + inner * .86)} ${px(y - inner * .2)} L ${px(x + inner * .5)} ${px(y + inner * .78)} L ${px(x - inner * .5)} ${px(y + inner * .78)} L ${px(x - inner * .86)} ${px(y - inner * .2)} Z"/><path d="M ${px(x - inner * .86)} ${px(y - inner * .2)} L ${px(x + inner * .86)} ${px(y - inner * .2)} M ${px(x - inner * .5)} ${px(y + inner * .78)} L ${px(x)} ${px(y - inner)} L ${px(x + inner * .5)} ${px(y + inner * .78)}"/>`,
+    brazuca: `<path d="M ${px(x - inner * .95)} ${px(y - inner * .1)} Q ${px(x - inner * .15)} ${px(y - inner)} ${px(x + inner * .75)} ${px(y - inner * .35)} Q ${px(x + inner * .15)} ${px(y + inner * .45)} ${px(x - inner * .65)} ${px(y + inner * .7)}"/><path d="M ${px(x - inner * .72)} ${px(y - inner * .62)} Q ${px(x)} ${px(y)} ${px(x + inner * .78)} ${px(y + inner * .6)}"/>`,
+    hex: `<path d="M ${px(x - inner * .42)} ${px(y - inner * .7)} L ${px(x + inner * .42)} ${px(y - inner * .7)} L ${px(x + inner * .8)} ${px(y)} L ${px(x + inner * .42)} ${px(y + inner * .7)} L ${px(x - inner * .42)} ${px(y + inner * .7)} L ${px(x - inner * .8)} ${px(y)} Z"/>`,
+  }[ball.pattern];
+  return `<g class="svg-wc-ball ${extraClass}" data-ball="${svgEscape(ball.name)}" style="--ball-accent:${ball.accent};${extraStyle}" aria-hidden="true"><title>${svgEscape(ball.name)} ball</title><circle class="svg-wc-ball-shell" cx="${px(x)}" cy="${px(y)}" r="${px(radius)}"/><g class="svg-wc-ball-pattern" fill="none" stroke="var(--ball-accent)" stroke-width="${stroke}" stroke-linecap="round" stroke-linejoin="round">${patterns}</g></g>`;
+}
+
 function svgValueLabel(value, decimals) {
   return decimals ? formatDecimal(value) : formatNumber(value);
+}
+
+function svgNumberAnimationData(rawValue, finalValue) {
+  const suffix = /%$/.test(finalValue) ? '%' : '';
+  const plainValue = String(finalValue).replace(/[% ,]/g, '');
+  const decimals = plainValue.includes('.') ? plainValue.split('.')[1].length : 0;
+  const target = Number(rawValue || 0) * (suffix ? 100 : 1);
+  return { target: Number.isFinite(target) ? target : null, suffix, decimals };
+}
+
+function formatAnimatedSvgNumber(value, decimals, suffix) {
+  return `${Number(value || 0).toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}${suffix || ''}`;
 }
 
 function renderSvg(element, content, viewBox = '0 0 820 300') {
@@ -551,6 +629,45 @@ function renderSvg(element, content, viewBox = '0 0 820 300') {
     <line class="svg-field-line" x1="650" y1="0" x2="820" y2="170"/>`;
   element.innerHTML = `<div class="chart-load-bar" aria-hidden="true"><span></span></div><svg class="svg-chart" id="${id}" viewBox="${viewBox}" role="img" aria-label="Interactive chart" preserveAspectRatio="xMidYMid meet">${defs}${surface}${content}</svg>`;
   element.classList.add('interactive-chart');
+  if (element.classList.contains('chart-is-visible')) revealSvgValues(element);
+}
+
+function revealSvgValues(element) {
+  if (element._svgValueTimers) element._svgValueTimers.forEach((timer) => window.clearTimeout(timer));
+  element._svgValueTimers = [];
+  const immediate = prefersReducedMotion();
+  element.querySelectorAll('.chart-number[data-final-value]').forEach((node, index) => {
+    const finalValue = node.dataset.finalValue || '';
+    const finish = () => {
+      node.textContent = finalValue;
+      node.classList.add('is-revealed');
+    };
+    if (immediate) {
+      finish();
+      return;
+    }
+    const target = Number(node.dataset.countTarget);
+    if (!Number.isFinite(target)) {
+      element._svgValueTimers.push(window.setTimeout(finish, 620 + index * 42));
+      return;
+    }
+    const start = () => {
+      const startedAt = Date.now();
+      const tick = () => {
+        const progress = Math.min(1, (Date.now() - startedAt) / 720);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        node.textContent = formatAnimatedSvgNumber(target * eased, Number(node.dataset.countDecimals || 0), node.dataset.countSuffix || '');
+        node.classList.add('is-revealed');
+        if (progress < 1) {
+          element._svgValueTimers.push(window.setTimeout(tick, 24));
+        } else {
+          finish();
+        }
+      };
+      tick();
+    };
+    element._svgValueTimers.push(window.setTimeout(start, 520 + index * 38));
+  });
 }
 
 function drawSvgBars(element, items, { horizontal = true, color = COLORS[0], maxItems = 10, decimals = false, formatValue = null, iconFor = null } = {}) {
@@ -579,17 +696,20 @@ function drawSvgBars(element, items, { horizontal = true, color = COLORS[0], max
       const barWidth = Math.max(3, ((Number(item.value) || 0) / max) * plotWidth);
       const label = shortLabel(item.label, 29);
       const value = valueText(item);
+      const animatedValue = svgNumberAnimationData(item.value, value);
       const icon = iconFor ? iconFor(item) : '';
       const outside = left + barWidth + 9;
       const inside = outside + 42 > width - 8;
       const valueX = inside ? left + barWidth - 9 : outside;
       const paint = svgPaint(element, colors[index % colors.length]);
-      content += `<g class="svg-mark rank-${index}" style="--chart-delay:${index * 38}ms" tabindex="0"><title>${svgEscape(item.label)}: ${svgEscape(value)}</title>`;
+      const ratio = Math.max(0, Math.min(1, (Number(item.value) || 0) / max));
+      content += `<g class="svg-mark rank-${index}" style="--chart-delay:${index * 38}ms;--bar-scale:${ratio.toFixed(4)}" tabindex="0"><title>${svgEscape(item.label)}: ${svgEscape(value)}</title>`;
       content += `<rect class="svg-track" x="${left}" y="${barY.toFixed(2)}" width="${plotWidth}" height="${barHeight.toFixed(2)}" rx="6"/>`;
-      content += `<rect class="svg-bar" x="${left}" y="${barY.toFixed(2)}" width="${barWidth.toFixed(2)}" height="${barHeight.toFixed(2)}" rx="6" fill="${paint}"/>`;
+      content += `<rect class="svg-bar svg-bar-horizontal" x="${left}" y="${barY.toFixed(2)}" width="${barWidth.toFixed(2)}" height="${barHeight.toFixed(2)}" rx="6" fill="${paint}"/>`;
+      content += svgWorldCupBall(left + barWidth, barY + barHeight / 2, 18, index, 'svg-bar-ball svg-bar-ball-horizontal', `--ball-distance:${barWidth.toFixed(2)}px;--ball-delay:${(index * 38 + 150)}ms`);
       if (icon) content += `<image class="svg-label-icon svg-horizontal-icon" href="${svgEscape(icon)}" x="${Math.max(5, left - 210)}" y="${(barY - 2).toFixed(2)}" width="22" height="22" preserveAspectRatio="xMidYMid meet"/>`;
       content += `<text class="svg-label" x="${left - 12}" y="${(barY + barHeight / 2 + 4).toFixed(2)}" text-anchor="end">${svgEscape(label)}</text>`;
-      content += `<text class="svg-value ${inside ? 'svg-value-inside' : ''}" x="${valueX.toFixed(2)}" y="${(barY + barHeight / 2 + 4).toFixed(2)}" text-anchor="${inside ? 'end' : 'start'}">${svgEscape(value)}</text></g>`;
+      content += `<text class="svg-value chart-number ${inside ? 'svg-value-inside' : ''}" data-final-value="${svgEscape(value)}" data-count-target="${animatedValue.target ?? ''}" data-count-decimals="${animatedValue.decimals}" data-count-suffix="${animatedValue.suffix}" x="${valueX.toFixed(2)}" y="${(barY + barHeight / 2 + 4).toFixed(2)}" text-anchor="${inside ? 'end' : 'start'}"></text></g>`;
     });
   } else {
     const left = 52;
@@ -610,13 +730,16 @@ function drawSvgBars(element, items, { horizontal = true, color = COLORS[0], max
       const barHeight = Math.max(2, ((Number(item.value) || 0) / max) * plotHeight);
       const y = top + plotHeight - barHeight;
       const value = valueText(item);
+      const animatedValue = svgNumberAnimationData(item.value, value);
       const label = shortLabel(item.label, 14);
       const icon = iconFor ? iconFor(item) : '';
       const labelY = icon ? height - bottom + 36 : height - bottom + 20;
       const paint = svgPaint(element, colors[index % colors.length]);
-      content += `<g class="svg-mark rank-${index}" style="--chart-delay:${index * 48}ms" tabindex="0"><title>${svgEscape(item.label)}: ${svgEscape(value)}</title>`;
-      content += `<rect class="svg-bar" x="${x.toFixed(2)}" y="${y.toFixed(2)}" width="${barWidth.toFixed(2)}" height="${barHeight.toFixed(2)}" rx="6" fill="${paint}"/>`;
-      content += `<text class="svg-value" x="${(x + barWidth / 2).toFixed(2)}" y="${Math.max(16, y - 8).toFixed(2)}" text-anchor="middle">${svgEscape(value)}</text>`;
+      const ratio = Math.max(0, Math.min(1, (Number(item.value) || 0) / max));
+      content += `<g class="svg-mark rank-${index}" style="--chart-delay:${index * 48}ms;--bar-scale:${ratio.toFixed(4)}" tabindex="0"><title>${svgEscape(item.label)}: ${svgEscape(value)}</title>`;
+      content += `<rect class="svg-bar svg-bar-vertical" x="${x.toFixed(2)}" y="${y.toFixed(2)}" width="${barWidth.toFixed(2)}" height="${barHeight.toFixed(2)}" rx="6" fill="${paint}"/>`;
+      content += svgWorldCupBall(x + barWidth / 2, y, 18, index, 'svg-bar-ball svg-bar-ball-vertical', `--ball-distance:${barHeight.toFixed(2)}px;--ball-delay:${(index * 48 + 150)}ms`);
+      content += `<text class="svg-value chart-number" data-final-value="${svgEscape(value)}" data-count-target="${animatedValue.target ?? ''}" data-count-decimals="${animatedValue.decimals}" data-count-suffix="${animatedValue.suffix}" x="${(x + barWidth / 2).toFixed(2)}" y="${Math.max(16, y - 8).toFixed(2)}" text-anchor="middle"></text>`;
       if (icon) content += `<image class="svg-label-icon" href="${svgEscape(icon)}" x="${(x + barWidth / 2 - 12).toFixed(2)}" y="${height - bottom - 2}" width="24" height="24" preserveAspectRatio="xMidYMid meet"/>`;
       content += `<text class="svg-label svg-x-label" x="${(x + barWidth / 2).toFixed(2)}" y="${labelY}" text-anchor="middle">${svgEscape(label)}</text></g>`;
     });
@@ -989,7 +1112,7 @@ async function initReport() {
   drawBars(document.getElementById('chart-methods'), methodTotals(rows, 'bodypart'), { horizontal: false, color: COLORS, maxItems: 3 });
   renderPitchBubbles(document.getElementById('chart-location'), locationTotals(rows));
   reportChart('chart-cards', rows, 'player', 'yellow_cards', { color: COLORS[4], maxItems: 10 });
-  reportChart('chart-teams', rows, 'team', 'goals', { color: COLORS, maxItems: 10, iconFor: (item) => CLUB_BADGES[item.key]?.[0] });
+  reportChart('chart-teams', rows, 'team', 'goals', { color: COLORS, maxItems: 10, iconFor: (item) => teamBadgeIcon(item.key) });
   renderConversionFunnel(document.getElementById('chart-conversion-funnel'), rows);
 }
 
@@ -1166,6 +1289,7 @@ function setupChartObserver() {
   const charts = document.querySelectorAll('.chart-plot');
   const reveal = (chart) => {
     chart.classList.add('chart-is-visible');
+    revealSvgValues(chart);
   };
   if (prefersReducedMotion() || !('IntersectionObserver' in window)) {
     charts.forEach(reveal);
