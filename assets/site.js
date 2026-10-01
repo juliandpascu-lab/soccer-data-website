@@ -1314,14 +1314,19 @@ function setupThemeToggle() {
 function setupSiteIntro() {
   const intro = document.getElementById('site-intro');
   if (!intro) return;
+  const finish = () => {
+    if (intro.dataset.completed === 'true') return;
+    intro.dataset.completed = 'true';
+    intro.classList.add('is-complete');
+    window.setTimeout(() => intro.remove(), 500);
+  };
+  const skip = document.getElementById('skip-intro');
+  if (skip) skip.addEventListener('click', finish);
   if (prefersReducedMotion()) {
-    intro.remove();
+    finish();
     return;
   }
-  window.setTimeout(() => {
-    intro.classList.add('is-complete');
-    window.setTimeout(() => intro.remove(), 550);
-  }, 1250);
+  intro._introTimer = window.setTimeout(finish, 2400);
 }
 
 async function initDashboard() {
