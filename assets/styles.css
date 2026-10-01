@@ -288,6 +288,53 @@ button:hover { background: var(--green-dark); }
 .dashboard-card-primary .chart-plot, .dashboard-card-season .chart-plot { height: 286px; }
 .pitch-card canvas { height: 300px; }
 .pitch-card { background: linear-gradient(145deg, #f9fcf8, #e5f0e6); }
+.stadium-3d { position: relative; height: 382px; overflow: hidden; margin: -16px -16px 18px; border-radius: 15px 15px 0 0; background: radial-gradient(circle at 50% 47%, rgba(53,166,119,.32), transparent 25%), linear-gradient(160deg, #092d24 0%, #0a4a37 54%, #07271f 100%); box-shadow: inset 0 -32px 55px rgba(0,0,0,.28); }
+.stadium-3d::before { position: absolute; inset: 0; content: ''; opacity: .42; background: repeating-linear-gradient(90deg, transparent 0 76px, rgba(255,255,255,.08) 77px 78px), linear-gradient(180deg, rgba(255,255,255,.12), transparent 18%); pointer-events: none; }
+.stadium-scene { position: absolute; inset: 17px 5% 38px; perspective: 850px; transform-style: preserve-3d; animation: stadium-camera 8s ease-in-out infinite alternate; }
+.stadium-bowl { position: absolute; inset: 18px 3% 9px; transform: rotateX(54deg) rotateZ(-1deg); transform-style: preserve-3d; border: 7px solid rgba(119,209,156,.28); border-radius: 48% / 43%; background: linear-gradient(150deg, #133f32, #092c23 74%); box-shadow: 0 27px 28px rgba(0,0,0,.35), inset 0 0 0 11px rgba(3,25,19,.56), inset 0 0 0 24px rgba(122,213,153,.12); }
+.stadium-seats { position: absolute; border-radius: 48% / 43%; pointer-events: none; }
+.stadium-seats-outer { inset: -1%; background: repeating-linear-gradient(180deg, rgba(111,192,143,.46) 0 3px, rgba(17,74,55,.68) 4px 8px, rgba(5,37,29,.8) 9px 13px); transform: translateZ(-18px) scale(1.04); box-shadow: inset 0 0 0 5px rgba(156,230,179,.22); }
+.stadium-seats-inner { inset: 9%; background: repeating-linear-gradient(180deg, rgba(33,113,78,.82) 0 4px, rgba(10,54,41,.82) 5px 9px); transform: translateZ(-8px) scale(1.03); box-shadow: inset 0 0 0 5px rgba(161,231,182,.16), 0 0 0 9px rgba(3,27,20,.45); }
+.stadium-stand { position: absolute; z-index: 2; background: repeating-linear-gradient(180deg, rgba(104,190,136,.5) 0 3px, rgba(7,44,34,.72) 4px 8px); box-shadow: 0 0 0 3px rgba(150,226,173,.12); }
+.stadium-stand-top { top: 3%; left: 15%; width: 70%; height: 15%; border-radius: 50% 50% 25% 25%; transform: translateZ(1px); }
+.stadium-stand-bottom { bottom: 3%; left: 15%; width: 70%; height: 15%; border-radius: 25% 25% 50% 50%; transform: translateZ(1px); }
+.stadium-stand-left { top: 21%; bottom: 21%; left: 3%; width: 14%; border-radius: 50% 20% 20% 50%; transform: translateZ(3px); }
+.stadium-stand-right { top: 21%; right: 3%; bottom: 21%; width: 14%; border-radius: 20% 50% 50% 20%; transform: translateZ(3px); }
+.stadium-pitch-wrap { position: absolute; z-index: 4; inset: 18% 14% 20%; transform: translateZ(22px); filter: drop-shadow(0 9px 8px rgba(0,0,0,.3)); }
+.stadium-pitch { position: relative; width: 100%; height: 100%; overflow: visible; border: 2px solid rgba(240,255,224,.86); border-radius: 4px; background: repeating-linear-gradient(90deg, rgba(255,255,255,.055) 0 7%, transparent 7% 14%), linear-gradient(90deg, #2d8a50, #42a660 48%, #287b49); box-shadow: inset 0 0 0 1px rgba(0,37,17,.22), inset 0 -9px 12px rgba(0,45,20,.18); }
+.stadium-pitch::before, .stadium-pitch::after { position: absolute; content: ''; pointer-events: none; }
+.stadium-pitch::before { inset: 0; background: linear-gradient(90deg, transparent 49.7%, rgba(238,255,230,.9) 49.8% 50.2%, transparent 50.3%); }
+.stadium-pitch::after { inset: 1px; border: 1px solid rgba(238,255,230,.62); }
+.pitch-halfway { position: absolute; top: 0; bottom: 0; left: 50%; z-index: 2; border-left: 1px solid rgba(238,255,230,.74); }
+.pitch-center-circle { position: absolute; top: 50%; left: 50%; z-index: 3; width: 21%; aspect-ratio: 1; border: 1px solid rgba(238,255,230,.82); border-radius: 50%; transform: translate(-50%, -50%); }
+.pitch-center-circle i, .pitch-spot { position: absolute; display: block; width: 5px; height: 5px; border-radius: 50%; background: rgba(247,255,231,.95); }
+.pitch-center-circle i { top: 50%; left: 50%; transform: translate(-50%, -50%); }
+.pitch-penalty-area { position: absolute; top: 24%; bottom: 24%; z-index: 3; width: 17%; border: 1px solid rgba(238,255,230,.84); }
+.pitch-penalty-left { left: -1px; border-left: 0; }
+.pitch-penalty-right { right: -1px; border-right: 0; }
+.pitch-six-yard { position: absolute; top: 19%; bottom: 19%; width: 47%; border: 1px solid rgba(238,255,230,.72); }
+.pitch-penalty-left .pitch-six-yard { left: 0; border-left: 0; }
+.pitch-penalty-right .pitch-six-yard { right: 0; border-right: 0; }
+.pitch-spot { top: 50%; width: 5px; height: 5px; transform: translateY(-50%); }
+.pitch-penalty-left .pitch-spot { right: 22%; }
+.pitch-penalty-right .pitch-spot { left: 22%; }
+.pitch-corner { position: absolute; z-index: 3; width: 11px; height: 11px; border: 1px solid rgba(238,255,230,.82); }
+.pitch-corner-tl { top: -1px; left: -1px; border-right: 0; border-bottom: 0; border-radius: 100% 0 0; }
+.pitch-corner-tr { top: -1px; right: -1px; border-bottom: 0; border-left: 0; border-radius: 0 100% 0 0; }
+.pitch-corner-bl { bottom: -1px; left: -1px; border-top: 0; border-right: 0; border-radius: 0 0 0 100%; }
+.pitch-corner-br { right: -1px; bottom: -1px; border-top: 0; border-left: 0; border-radius: 0 0 100% 0; }
+.pitch-goal { position: absolute; top: 42%; z-index: 4; width: 5%; height: 16%; border: 1px solid rgba(247,255,231,.95); background: repeating-linear-gradient(135deg, rgba(238,255,230,.44) 0 1px, transparent 1px 4px); }
+.pitch-goal-left { left: -5%; }
+.pitch-goal-right { right: -5%; }
+.stadium-floodlight { position: absolute; bottom: 64px; z-index: 6; width: 3px; height: 128px; background: linear-gradient(180deg, rgba(224,255,226,.65), rgba(117,206,151,.15)); transform-origin: bottom; }
+.stadium-floodlight::before { position: absolute; top: -4px; left: -9px; width: 21px; height: 8px; content: ''; border-radius: 5px; background: #efffdf; box-shadow: 0 0 10px 4px rgba(211,255,209,.62), 0 0 42px 13px rgba(85,219,142,.26); }
+.stadium-floodlight i { position: absolute; bottom: -4px; left: -4px; width: 11px; height: 8px; border-radius: 3px; background: #092f24; }
+.stadium-floodlight-left { left: 14%; transform: rotate(-7deg); }
+.stadium-floodlight-right { right: 14%; transform: rotate(7deg); }
+.stadium-3d-caption { position: absolute; right: 16px; bottom: 13px; left: 16px; z-index: 7; display: flex; align-items: baseline; justify-content: space-between; gap: 14px; color: #fff; }
+.stadium-3d-caption strong { font-size: .72rem; letter-spacing: .15em; }
+.stadium-3d-caption span { color: rgba(232,255,235,.72); font-size: .62rem; }
+@keyframes stadium-camera { from { transform: rotateY(-1deg) translateY(1px); } to { transform: rotateY(1deg) translateY(-2px); } }
 .table-wrap { overflow-x: auto; background: var(--card); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow); }
 table { width: 100%; border-collapse: collapse; font-size: .88rem; }
 th, td { padding: 12px 14px; border-bottom: 1px solid var(--line); text-align: left; white-space: nowrap; overflow-wrap: anywhere; }
@@ -342,6 +389,7 @@ tbody tr:hover { background: #f0f7f1; }
 [data-theme="dark"] .league-choice { background: #142a21; }
 [data-theme="dark"] .league-choice.active { background: #0d4a36; }
 [data-theme="dark"] .pitch-card { background: linear-gradient(145deg, #122a20, #0e2119); }
+[data-theme="dark"] .stadium-3d { background: radial-gradient(circle at 50% 47%, rgba(53,166,119,.25), transparent 25%), linear-gradient(160deg, #061f18 0%, #073b2d 54%, #041a14 100%); }
 @keyframes intro-exit { from { opacity: 1; transform: scale(1); } to { opacity: 0; visibility: hidden; transform: scale(1.035); } }
 @keyframes intro-glow { from { opacity: 0; transform: scale(.84); } 45% { opacity: 1; } to { opacity: .72; transform: scale(1.05); } }
 @keyframes intro-pitch-sweep { from { transform: rotate(-8deg) translateX(-18%); } to { transform: rotate(-8deg) translateX(7%); } }
@@ -395,6 +443,9 @@ tbody tr:hover { background: #f0f7f1; }
   .scorer-shirts { gap: 3px; }
   .kit-visual { width: 100px; height: 118px; }
   .stadium-visual > div { display: grid; gap: 2px; }
+  .stadium-3d { height: 314px; }
+  .stadium-scene { inset: 12px 0 37px; transform: scale(.94); }
+  .stadium-3d-caption { display: grid; gap: 3px; }
   .conversion-card .chart-plot { height: 320px; }
 }
 @media (prefers-reduced-motion: reduce) {
