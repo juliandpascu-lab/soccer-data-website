@@ -79,11 +79,18 @@
       <article class="dashboard-card"><div class="card-kicker">COMPETITION SPLIT</div><h3>Goals by league</h3><div class="chart-plot" id="dash-goals-chart"></div></article>
       <article class="dashboard-card"><div class="card-kicker">DISCIPLINE CHECK</div><h3>Yellow cards by league</h3><div class="chart-plot" id="dash-discipline-chart"></div></article>
       <article class="dashboard-card"><div class="card-kicker">HOW THEY SCORED</div><h3>Goals by selected method</h3><div class="chart-plot" id="dash-method-chart"></div></article>
-      <article class="dashboard-card pitch-card"><div class="card-kicker">SHOT MAP / CURRENT SCOPE</div><h3>Goal locations</h3><div class="stadium-3d" id="stadium-3d" role="img" aria-label="Camp Nou stadium rendering with a football pitch viewed in perspective">
-        <div class="real-stadium-backplate"></div>
-        <div class="real-stadium-scene"><img class="real-stadium-photo" src="assets/stadium/camp-nou-render.jpg" alt="Architectural rendering of Camp Nou with the football pitch visible" loading="lazy" onerror="this.onerror=null;this.src='assets/stadium/real-stadium-pitch.jpg'"><div class="real-stadium-glass"></div><div class="real-stadium-sheen"></div></div>
-        <div class="stadium-3d-caption"><strong>CAMP NOU / 3D MATCH VIEW</strong><span>Stadium rendering · goal-zone context</span></div>
-      </div><canvas id="dash-location-chart"></canvas><p class="chart-note">Hover a zone to see the exact recorded value in the current filter view.</p></article>
+      <article class="dashboard-card pitch-card"><div class="card-kicker">SHOT MAP / CURRENT SCOPE</div><h3>Goal locations</h3><div class="stadium-visual"><img src="assets/stadium/camp-nou-render.jpg" alt="Architectural rendering of Camp Nou" loading="lazy"><div><strong>CAMP NOU</strong><span>Stadium rendering · goal-zone context</span></div></div><div class="pitch-3d-stage" id="dash-location-chart" role="group" aria-label="Three-dimensional football pitch with interactive goal-location bubbles">
+        <div class="stadium-scene"><div class="stadium-bowl">
+          <div class="stadium-seats stadium-seats-outer"></div><div class="stadium-seats stadium-seats-inner"></div>
+          <div class="stadium-stand stadium-stand-top"></div><div class="stadium-stand stadium-stand-bottom"></div><div class="stadium-stand stadium-stand-left"></div><div class="stadium-stand stadium-stand-right"></div>
+          <div class="stadium-pitch-wrap"><div class="stadium-pitch">
+            <span class="pitch-halfway"></span><span class="pitch-center-circle"><i></i></span>
+            <span class="pitch-penalty-area pitch-penalty-left"><i class="pitch-six-yard"></i><i class="pitch-spot"></i></span><span class="pitch-penalty-area pitch-penalty-right"><i class="pitch-six-yard"></i><i class="pitch-spot"></i></span>
+            <span class="pitch-corner pitch-corner-tl"></span><span class="pitch-corner pitch-corner-tr"></span><span class="pitch-corner pitch-corner-bl"></span><span class="pitch-corner pitch-corner-br"></span>
+            <span class="pitch-goal pitch-goal-left"></span><span class="pitch-goal pitch-goal-right"></span><div class="pitch-bubbles" aria-label="Goal-location bubbles"></div>
+          </div></div>
+        </div></div><div class="pitch-3d-caption"><span>3D PITCH ZONES · ATTACKING DIRECTION →</span><strong>HOVER BUBBLES</strong></div>
+      </div><p class="chart-note">Hover a glowing bubble for the exact recorded value in the current filter view.</p></article>
     </section>
 
     <section>

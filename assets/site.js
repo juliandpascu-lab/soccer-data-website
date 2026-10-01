@@ -442,6 +442,19 @@ function locationTotals(rows) {
   })).filter((location) => location.value > 0).sort((a, b) => b.value - a.value);
 }
 
+function renderPitchBubbles(container, items) {
+  if (!container) return;
+  const layer = container.querySelector('.pitch-bubbles');
+  if (!layer) return;
+  const max = Math.max(...items.map((item) => Number(item.value) || 0), 1);
+  layer.innerHTML = items.map((item, index) => {
+    const value = Number(item.value) || 0;
+    const size = 20 + Math.sqrt(value / max) * 38;
+    const tooltip = `${item.label}: ${formatNumber(value)} recorded goals`;
+    return `<button class="pitch-bubble${index === 0 ? ' is-leading' : ''}" type="button" style="--bubble-x:${(item.x * 100).toFixed(2)}%;--bubble-y:${(item.y * 100).toFixed(2)}%;--bubble-size:${size.toFixed(1)}px;--bubble-delay:${index * 24}ms" data-tooltip="${escapeHtml(tooltip)}" title="${escapeHtml(tooltip)}" aria-label="${escapeHtml(tooltip)}"><span>${formatNumber(value)}</span></button>`;
+  }).join('');
+}
+
 function shortLabel(label, max = 19) {
   const clean = String(label);
   return clean.length > max ? `${clean.slice(0, max - 1)}…` : clean;
@@ -921,7 +934,7 @@ async function initReport() {
   reportChart('chart-league-goals', rows, 'league', 'goals', { horizontal: false, color: COLORS, maxItems: 5 });
   reportChart('chart-contributions', rows, 'player', 'goal_contributions', { color: COLORS[2], maxItems: 10 });
   drawBars(document.getElementById('chart-methods'), methodTotals(rows, 'bodypart'), { horizontal: false, color: COLORS, maxItems: 3 });
-  drawPitchHeatmap(document.getElementById('chart-location'), locationTotals(rows));
+  renderPitchBubbles(document.getElementById('chart-location'), locationTotals(rows));
   reportChart('chart-cards', rows, 'player', 'yellow_cards', { color: COLORS[4], maxItems: 10 });
   reportChart('chart-teams', rows, 'team', 'goals', { color: COLORS, maxItems: 10 });
   renderConversionFunnel(document.getElementById('chart-conversion-funnel'), rows);
@@ -1033,7 +1046,7 @@ function renderDashboard(rows) {
   drawBars(document.getElementById('dash-goals-chart'), groupSum(filtered, 'league', 'goals'), { horizontal: false, color: COLORS[2], maxItems: 5, iconFor: (item) => LEAGUE_BADGES[item.key] });
   drawBars(document.getElementById('dash-discipline-chart'), groupSum(filtered, 'league', 'yellow_cards'), { horizontal: false, color: COLORS[4], maxItems: 5, iconFor: (item) => LEAGUE_BADGES[item.key] });
   drawBars(document.getElementById('dash-method-chart'), methodTotals(filtered, methodGroup), { horizontal: false, color: COLORS, maxItems: 5 });
-  drawPitchHeatmap(document.getElementById('dash-location-chart'), locationTotals(filtered));
+  renderPitchBubbles(document.getElementById('dash-location-chart'), locationTotals(filtered));
   setText('table-view-label', `Current view / top ${Math.min(20, filtered.length)} records`);
   renderTable(filtered, metric);
 }
@@ -1095,23 +1108,6 @@ function setupThemeToggle() {
   });
 }
 
-function setupStadiumTilt() {
-  const frame = document.getElementById('stadium-3d');
-  const scene = frame?.querySelector('.real-stadium-scene');
-  if (!frame || !scene || prefersReducedMotion()) return;
-  frame.addEventListener('pointermove', (event) => {
-    const bounds = frame.getBoundingClientRect();
-    const x = (event.clientX - bounds.left) / bounds.width - .5;
-    const y = (event.clientY - bounds.top) / bounds.height - .5;
-    scene.style.setProperty('--tilt-x', `${(y * -5).toFixed(2)}deg`);
-    scene.style.setProperty('--tilt-y', `${(x * 6).toFixed(2)}deg`);
-  });
-  frame.addEventListener('pointerleave', () => {
-    scene.style.setProperty('--tilt-x', '0deg');
-    scene.style.setProperty('--tilt-y', '0deg');
-  });
-}
-
 function setupSiteIntro() {
   const intro = document.getElementById('site-intro');
   if (!intro) return;
@@ -1166,7 +1162,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupScrollReveal();
   setupMetricObserver();
   setupThemeToggle();
-  setupStadiumTilt();
   try {
     if (document.body.dataset.page === 'report') await initReport();
     if (document.body.dataset.page === 'dashboard') await initDashboard();
