@@ -589,7 +589,6 @@ function drawSvgBars(element, items, { horizontal = true, color = COLORS[0], max
       content += `<rect class="svg-track" x="${left}" y="${barY.toFixed(2)}" width="${plotWidth}" height="${barHeight.toFixed(2)}" rx="6"/>`;
       content += `<rect class="svg-bar-shadow" x="${(left + 4).toFixed(2)}" y="${(barY + 4).toFixed(2)}" width="${barWidth.toFixed(2)}" height="${barHeight.toFixed(2)}" rx="6" fill="${paint}"/>`;
       content += `<rect class="svg-bar" x="${left}" y="${barY.toFixed(2)}" width="${barWidth.toFixed(2)}" height="${barHeight.toFixed(2)}" rx="6" fill="${paint}" filter="url(#${chartSvgId(element)}-shadow)"/>`;
-      content += `<rect class="svg-bar-highlight" x="${left + 2}" y="${(barY + 2).toFixed(2)}" width="${Math.max(0, barWidth - 4).toFixed(2)}" height="2" rx="1"/>`;
       if (icon) content += `<image class="svg-label-icon svg-horizontal-icon" href="${svgEscape(icon)}" x="${Math.max(5, left - 210)}" y="${(barY - 2).toFixed(2)}" width="22" height="22" preserveAspectRatio="xMidYMid meet"/>`;
       content += `<text class="svg-label" x="${left - 12}" y="${(barY + barHeight / 2 + 4).toFixed(2)}" text-anchor="end">${svgEscape(label)}</text>`;
       content += `<text class="svg-value ${inside ? 'svg-value-inside' : ''}" x="${valueX.toFixed(2)}" y="${(barY + barHeight / 2 + 4).toFixed(2)}" text-anchor="${inside ? 'end' : 'start'}">${svgEscape(value)}</text></g>`;
@@ -620,7 +619,6 @@ function drawSvgBars(element, items, { horizontal = true, color = COLORS[0], max
       content += `<g class="svg-mark rank-${index}" style="--chart-delay:${index * 48}ms" tabindex="0"><title>${svgEscape(item.label)}: ${svgEscape(value)}</title>`;
       content += `<rect class="svg-bar-shadow" x="${(x + 4).toFixed(2)}" y="${(y + 5).toFixed(2)}" width="${barWidth.toFixed(2)}" height="${barHeight.toFixed(2)}" rx="6" fill="${paint}"/>`;
       content += `<rect class="svg-bar" x="${x.toFixed(2)}" y="${y.toFixed(2)}" width="${barWidth.toFixed(2)}" height="${barHeight.toFixed(2)}" rx="6" fill="${paint}" filter="url(#${chartSvgId(element)}-shadow)"/>`;
-      content += `<rect class="svg-bar-highlight" x="${(x + 2).toFixed(2)}" y="${(y + 2).toFixed(2)}" width="${Math.max(0, barWidth - 4).toFixed(2)}" height="2" rx="1"/>`;
       content += `<text class="svg-value" x="${(x + barWidth / 2).toFixed(2)}" y="${Math.max(16, y - 8).toFixed(2)}" text-anchor="middle">${svgEscape(value)}</text>`;
       if (icon) content += `<image class="svg-label-icon" href="${svgEscape(icon)}" x="${(x + barWidth / 2 - 12).toFixed(2)}" y="${height - bottom - 2}" width="24" height="24" preserveAspectRatio="xMidYMid meet"/>`;
       content += `<text class="svg-label svg-x-label" x="${(x + barWidth / 2).toFixed(2)}" y="${labelY}" text-anchor="middle">${svgEscape(label)}</text></g>`;
@@ -745,7 +743,7 @@ function renderConversionFunnel(element, rows) {
       : detail;
     const path = `M ${topLeft.toFixed(2)} ${y} L ${topRight.toFixed(2)} ${y} L ${bottomRight.toFixed(2)} ${(y + stageHeight).toFixed(2)} L ${bottomLeft.toFixed(2)} ${(y + stageHeight).toFixed(2)} Z`;
     const paint = svgPaint(element, stage.color);
-    content += `<g class="funnel-segment" style="--chart-delay:${index * 90}ms" tabindex="0"><title>${stage.label}: ${formatNumber(stage.value)} (${svgEscape(index === totals.length - 1 ? nextDetail : detail)})</title><path d="${path}" fill="${paint}" filter="url(#${chartSvgId(element)}-shadow)"/><path class="funnel-gloss" d="M ${topLeft.toFixed(2)} ${(y + 2).toFixed(2)} L ${topRight.toFixed(2)} ${(y + 2).toFixed(2)} L ${(topRight - 12).toFixed(2)} ${(y + 7).toFixed(2)} L ${(topLeft + 12).toFixed(2)} ${(y + 7).toFixed(2)} Z"/><text class="funnel-label" x="${funnelCenter}" y="${y + 28}" text-anchor="middle">${stage.label}</text><text class="funnel-value" x="${funnelCenter}" y="${y + 51}" text-anchor="middle">${formatNumber(stage.value)}</text></g>`;
+    content += `<g class="funnel-segment" style="--chart-delay:${index * 90}ms" tabindex="0"><title>${stage.label}: ${formatNumber(stage.value)} (${svgEscape(index === totals.length - 1 ? nextDetail : detail)})</title><path d="${path}" fill="${paint}" filter="url(#${chartSvgId(element)}-shadow)"/><text class="funnel-label" x="${funnelCenter}" y="${y + 28}" text-anchor="middle">${stage.label}</text><text class="funnel-value" x="${funnelCenter}" y="${y + 51}" text-anchor="middle">${formatNumber(stage.value)}</text></g>`;
     if (index < totals.length - 1) {
       content += `<text class="funnel-rate" x="${funnelCenter + 216}" y="${y + stageHeight + 5}">${formatPercent(totals[index + 1].value / stage.value)} CONTINUE</text>`;
     }
