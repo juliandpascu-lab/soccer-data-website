@@ -639,6 +639,7 @@ function drawSvgLine(element, items, { color = COLORS[0], decimals = false, form
   const bottom = 58;
   const plotWidth = width - left - right;
   const plotHeight = height - top - bottom;
+  const baseline = top + plotHeight;
   const max = Math.max(...data.map((item) => Number(item.value) || 0), 1);
   const point = (item, index) => ({
     x: left + (data.length === 1 ? plotWidth / 2 : index * plotWidth / (data.length - 1)),
@@ -653,21 +654,25 @@ function drawSvgLine(element, items, { color = COLORS[0], decimals = false, form
   const points = data.map(point);
   const labelStep = Math.max(1, Math.ceil(data.length / 8));
   const paint = svgPaint(element, color);
+  content += `<line class="svg-baseline" x1="${left}" y1="${baseline}" x2="${width - right}" y2="${baseline}"/>`;
   const areaPoints = [`${left},${top + plotHeight}`, ...points.map((item) => `${item.x.toFixed(2)},${item.y.toFixed(2)}`), `${width - right},${top + plotHeight}`].join(' ');
   content += `<polygon class="svg-area" points="${areaPoints}" fill="url(#${chartSvgId(element)}-area)"/>`;
   content += `<polyline class="svg-line" fill="none" stroke="${paint}" filter="url(#${chartSvgId(element)}-glow)" points="${points.map((item) => `${item.x.toFixed(2)},${item.y.toFixed(2)}`).join(' ')}"/>`;
   data.forEach((item, index) => {
     const current = points[index];
     const value = formatValue ? formatValue(item.value) : svgValueLabel(item.value, decimals);
-    content += `<g class="svg-mark rank-${index}" style="--chart-delay:${index * 48}ms" tabindex="0"><title>${svgEscape(item.label)}: ${svgEscape(value)}</title>`;
+    const pointOffset = Math.max(0, baseline - current.y);
+    content += `<g class="svg-point-rise" style="--point-offset:${pointOffset.toFixed(2)}px;--chart-delay:${index * 48}ms"><g class="svg-mark rank-${index}" style="--chart-delay:${index * 48}ms" tabindex="0"><title>${svgEscape(item.label)}: ${svgEscape(value)}</title>`;
     content += `<circle class="svg-point-halo" cx="${current.x.toFixed(2)}" cy="${current.y.toFixed(2)}" r="10" fill="${paint}"/>`;
     content += `<circle class="svg-point" cx="${current.x.toFixed(2)}" cy="${current.y.toFixed(2)}" r="5" fill="${paint}"/>`;
     if (data.length <= 12 || index % labelStep === 0 || index === data.length - 1) {
       content += `<text class="svg-value" x="${current.x.toFixed(2)}" y="${Math.max(16, current.y - 12).toFixed(2)}" text-anchor="middle">${svgEscape(value)}</text>`;
       content += `<text class="svg-label svg-x-label" x="${current.x.toFixed(2)}" y="${height - bottom + 20}" text-anchor="middle">${svgEscape(shortLabel(item.label, 15))}</text>`;
     }
-    content += '</g>';
+    content += '</g></g>';
   });
+  const ball = points[points.length - 1];
+  content += `<g class="svg-soccer-ball" style="--ball-offset:${Math.max(0, baseline - ball.y).toFixed(2)}px;--ball-delay:${Math.min(data.length * 48, 520)}ms" aria-hidden="true"><circle class="svg-ball-shell" cx="${ball.x.toFixed(2)}" cy="${ball.y.toFixed(2)}" r="11"/><text class="svg-ball-glyph" x="${ball.x.toFixed(2)}" y="${(ball.y + 5).toFixed(2)}" text-anchor="middle">⚽</text></g>`;
   content += '</g>';
   renderSvg(element, content);
 }
