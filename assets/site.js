@@ -164,16 +164,18 @@ function prefersReducedMotion() {
   return typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
-function animateMetric(id, target, formatter = formatNumber, duration = 900) {
-  const element = document.getElementById(id);
-  const numericTarget = Number(target);
-  if (!element || !Number.isFinite(numericTarget)) {
-    if (element) element.textContent = '—';
-    return;
-  }
+let metricObserver = null;
+
+function runMetricAnimation(element) {
+  const numericTarget = Number(element.dataset.countTarget);
+  const formatter = element._metricFormatter || formatNumber;
+  const duration = element._metricDuration || 900;
+  if (!Number.isFinite(numericTarget)) return;
   if (element._metricFrame) cancelAnimationFrame(element._metricFrame);
   const startValue = Number(element.dataset.motionValue || 0);
   element.dataset.motionValue = String(numericTarget);
+  element.dataset.counted = 'true';
+  element.classList.remove('count-up-pending');
   if (prefersReducedMotion()) {
     element.textContent = formatter(numericTarget);
     return;
@@ -186,6 +188,25 @@ function animateMetric(id, target, formatter = formatNumber, duration = 900) {
     if (progress < 1) element._metricFrame = requestAnimationFrame(tick);
   };
   element._metricFrame = requestAnimationFrame(tick);
+}
+
+function animateMetric(id, target, formatter = formatNumber, duration = 900) {
+  const element = document.getElementById(id);
+  const numericTarget = Number(target);
+  if (!element || !Number.isFinite(numericTarget)) {
+    if (element) element.textContent = '—';
+    return;
+  }
+  element._metricFormatter = formatter;
+  element._metricDuration = duration;
+  element.dataset.countTarget = String(numericTarget);
+  if (element.dataset.counted === 'true' || prefersReducedMotion() || !metricObserver) {
+    runMetricAnimation(element);
+    return;
+  }
+  element.textContent = formatter(0);
+  element.classList.add('count-up-pending');
+  metricObserver.observe(element);
 }
 
 function displayName(value) {
@@ -1045,6 +1066,17 @@ function setupScrollReveal() {
   elements.forEach((element) => observer.observe(element));
 }
 
+function setupMetricObserver() {
+  if (prefersReducedMotion() || !('IntersectionObserver' in window)) return;
+  metricObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      metricObserver.unobserve(entry.target);
+      runMetricAnimation(entry.target);
+    });
+  }, { threshold: .35, rootMargin: '0px 0px -8% 0px' });
+}
+
 function setupThemeToggle() {
   const button = document.getElementById('theme-toggle');
   if (!button) return;
@@ -1115,6 +1147,7 @@ async function initDashboard() {
 document.addEventListener('DOMContentLoaded', async () => {
   setupSiteIntro();
   setupScrollReveal();
+  setupMetricObserver();
   setupThemeToggle();
   try {
     if (document.body.dataset.page === 'report') await initReport();
