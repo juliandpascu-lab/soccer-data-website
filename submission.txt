@@ -1,0 +1,4 @@
+Student Name: Julian Pascu
+Student ID: 100081091
+Repository URL: https://github.com/juliandpascu-lab/soccer-data-website
+Live Site URL: https://juliandpascu-lab.github.io/soccer-data-website/
